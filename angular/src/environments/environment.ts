@@ -25,7 +25,7 @@ export const config : LPSConfig = {
     },
     mode:        "dev",
     status:      "Dev Version",
-    appVersion:  "v1.1.0",
+    appVersion:  "v1.2.X",
     production:  context.production
 }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef } from '@angular/core';
+import { Component, OnInit, ElementRef, Input, Inject, APP_ID } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { TreeNode } from 'primeng/primeng';
@@ -7,13 +7,9 @@ import { Observable, of } from 'rxjs';
 import * as _ from 'lodash';
 import 'rxjs/add/operator/map';
 import { AppConfig } from '../config/config';
-import { PLATFORM_ID, APP_ID, Inject } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { NerdmRes } from '../nerdm/nerdm';
 import { CommonVarService } from '../shared/common-var';
-import { SearchService } from '../shared/search-service/index';
 import { tap } from 'rxjs/operators';
-import { isPlatformServer } from '@angular/common';
-import { makeStateKey, TransferState } from '@angular/platform-browser';
 
 interface reference {
   refType?: string,
@@ -89,7 +85,6 @@ export class LandingComponent implements OnInit {
   errorMsg: string;
   status: string;
   searchValue: string;
-  record: any = [];
   keyword: string;
   findId: string;
   leftmenu: MenuItem[];
@@ -102,7 +97,6 @@ export class LandingComponent implements OnInit {
   citeString: string = '';
   type: string = '';
   process: any[];
-  requestedId: string = '';
   isCopied: boolean = false;
   distdownload: string = '';
   serviceApi: string = '';
@@ -120,59 +114,36 @@ export class LandingComponent implements OnInit {
   isLocalProcessing: boolean = false;
   isLoading: boolean = true;
   HomePageLink: boolean = false;
-  inBrowser : boolean = false;  
+
+  @Input() record : NerdmRes = null;  // this should be set by the parent component
+  @Input() inBrowser : boolean = false;  
 
   /**
    * Creates an instance of the SearchPanel
    *
    */
   constructor(private route: ActivatedRoute, private el: ElementRef,
-              private titleService: Title, private cfg : AppConfig, private router: Router,
-              @Inject(PLATFORM_ID) private platformId: Object,
+              private cfg : AppConfig, private router: Router,
               @Inject(APP_ID) private appId: string,
-              private transferState: TransferState,
-              private searchService: SearchService,
               private commonVarService: CommonVarService)
   {
-    this.inBrowser = isPlatformBrowser(platformId);
   }
 
   /**
    * Get the params OnInit
    */
   ngOnInit() {
-    this.commonVarService.watchLocalProcessing().subscribe(
-      value => {
-        this.isLocalProcessing = value;
-      }
-    );
-
     this.searchValue = this.route.snapshot.paramMap.get('id');
     // this.errorMsg = 'The requested record id ' + this.searchValue + ' does not match with any records in the system';
 
-    if (this.router.url.includes("ark"))
-      this.searchValue = this.router.url.split("/id/").pop();
+    if (this.route.snapshot.url.toString().includes("ark"))
+      this.searchValue = this.route.snapshot.url.toString().split("/id/").pop();
 
-    this.ediid = this.searchValue;
-    this.commonVarService.setEdiid(this.searchValue);
+    this.onSuccess();
+
+    this.ediid = this.record.ediid;
+    this.commonVarService.setEdiid(this.ediid);
     this.files = [];
-
-    this.getData()
-      .subscribe((res) => {
-        this.onSuccess(res).then(function (result) {
-          this.commonVarService.setContentReady(true);
-          this.isLoading = false;
-        }.bind(this), function (err) {
-          alert("something went wrong while fetching the data.");
-        });
-      }, (error) => {
-        console.log("There is an error in searchservice.");
-        console.log(error);
-        this.errorMsg = error;
-        this.isLoading = false;
-        this.commonVarService.setContentReady(true);
-        // throw new ErrorComponent(this.route);
-      });
   }
 
   /*
@@ -181,7 +152,7 @@ export class LandingComponent implements OnInit {
   ngAfterViewInit() {
     this.useFragment();
     var recordid;
-    if (this.record != null && isPlatformBrowser(this.platformId)) {
+    if (this.record != null && this.inBrowser) {
       // recordid = this.searchValue;
       // // recordid = "ark:/88434/"+this.searchValue;
       // if(this.searchValue.includes("ark"))
@@ -194,11 +165,7 @@ export class LandingComponent implements OnInit {
   /**
   * If Search is successful populate list of keywords themes and authors
   */
-  onSuccess(searchResults: any[]) {
-    if (searchResults["ResultCount"] === undefined || searchResults["ResultCount"] !== 1)
-      this.record = searchResults;
-    else if (searchResults["ResultCount"] !== undefined && searchResults["ResultCount"] === 1)
-      this.record = searchResults["ResultData"][0];
+  onSuccess() {
 
     this.HomePageLink = this.displayHomePageLink();
 
@@ -208,7 +175,6 @@ export class LandingComponent implements OnInit {
     }
 
     this.type = this.record['@type'];
-    this.titleService.setTitle(this.record['title']);
     this.createNewDataHierarchy();
     if (this.files.length > 0) {
       this.setLeafs(this.files[0].data);
@@ -367,49 +333,6 @@ export class LandingComponent implements OnInit {
       }
     });
   }
-  getData(): Observable<any> {
-    var recordid = this.searchValue;
-    const recordid_KEY = makeStateKey<string>('record-' + recordid);
-
-    if (this.transferState.hasKey(recordid_KEY)) {
-      console.log("extracting data id="+recordid+" embedded in web page");
-      const record = this.transferState.get<any>(recordid_KEY, null);
-      // this.transferState.remove(recordid_KEY);
-      return of(record);
-    }
-    else {
-      console.warn("record data not found in transfer state");
-      return this.searchService.searchById(recordid)
-        .catch((err: Response, caught: Observable<any[]>) => {
-          // console.log(err);
-          if (err !== undefined) {
-            console.error("Failed to retrieve data for id="+recordid+"; error status=" + err.status);
-            if ("message" in err) console.error("Reason: "+(<any>err).message);
-            if ("url" in err) console.error("URL used: "+(<any>err).url);
-
-            // console.error(err);
-            if (err.status >= 500) {
-              this.router.navigate(["/usererror", recordid, { errorcode: err.status }]);
-            }
-            if (err.status >= 400 && err.status < 500) {
-              this.router.navigate(["/usererror", recordid, { errorcode: err.status }]);
-            }
-            if (err.status == 0) {
-              console.warn("Possible causes: Unable to trust site cert, CORS restrictions, ...");
-              return Observable.throw('Unknown error requesting data for id='+recordid);
-            }
-          }
-          return Observable.throw(caught);
-        })
-        .pipe(
-          tap(record => {
-            if (isPlatformServer(this.platformId)) {
-              this.transferState.set(recordid_KEY, record);
-            }
-          })
-        );
-    }
-  }
 
   //This is to check if empty
   isEmptyObject(obj) {
@@ -563,10 +486,6 @@ export class LandingComponent implements OnInit {
   }
   closeDialog() {
     this.display = false;
-  }
-
-  public setTitle(newTitle: string) {
-    this.titleService.setTitle(newTitle);
   }
 
   checkReferences() {

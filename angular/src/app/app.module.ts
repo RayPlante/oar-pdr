@@ -47,7 +47,7 @@ import { fakeBackendProvider } from './_helpers/fakeBackendInterceptor';
 
 @NgModule({
   declarations: [
-    AppComponent, CommonVarService,
+    AppComponent, 
     LandingAboutComponent, DatacartComponent,
     ErrorComponent, UserErrorComponent,
     AppShellNoRenderDirective, AppShellRenderDirective,

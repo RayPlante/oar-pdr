@@ -19,15 +19,12 @@
     <!-- <div id="overlay" *ngIf="isLocalProcessing"> -->
     <div class="loading" *ngIf="isLocalProcessing"></div>
     <!-- </div> -->
-    <div *ngIf="record?.length == 0 || isId === false">
-      <div *ngIf="!isLoading" class="ui-g">
-        <div class="ui-g-10 ui-md-10 ui-lg-10 ui-sm-12" style="padding-left: 1%">
-          <b>No Landing page available</b>
-          <p>{{errorMsg}}</p>
-        </div>
+    <div *ngIf="record === null || record.length === 0">
+      <div class="ui-g-10 ui-md-10 ui-lg-10 ui-sm-12" style="padding-left: 1%">
+        <b>Landing page is loading...</b>
       </div>
     </div>
-    <div *ngIf="record.length !== 0 && isId === true">
+    <div *ngIf="record && record.length !== 0">
       <div class="ui-g">
         <div class="ui-g-10 ui-md-10 ui-lg-10 ui-sm-12">
           <div class="ui-g">

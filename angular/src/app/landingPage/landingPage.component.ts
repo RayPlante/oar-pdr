@@ -62,16 +62,18 @@ export class LandingPageComponent implements OnInit {
             (data) => {
                 // successful metadata request
                 this.md = data;
-                if (! this.md)
+                if (! this.md) {
                     // id not found; reroute
+                    console.error("Metadata record not found for id="+this.reqId);
                     this.router.navigateByUrl("/not-found", { skipLocationChange: true });
+                }
                 else
                     // proceed with rendering of the component
                     this.useMetadata();
             },
             (err)  => {
                 console.error("Failed to retrieve metadata: "+err.message);
-                this.router.navigateByUrl("error/:"+this.reqId, { skipLocationChange: true });
+                this.router.navigateByUrl("error/"+this.reqId, { skipLocationChange: true });
             }
         );
     }

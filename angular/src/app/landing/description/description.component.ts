@@ -138,7 +138,7 @@ export class DescriptionComponent {
   ngOnInit() {
     this.distApi = this.cfg.get("distService", "/od/ds/");
 
-    if (this.files.length != 0)
+    if (this.files.length != 0) 
       this.files = <TreeNode[]>this.files[0].data;
 
 

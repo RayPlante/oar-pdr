@@ -1,5 +1,5 @@
-import { Component, OnInit, ElementRef, Input, Inject, APP_ID } from '@angular/core';
-import { Title, Meta } from '@angular/platform-browser';
+import { Component, OnInit, OnChanges, ElementRef, Input, Inject, APP_ID } from '@angular/core';
+import { Meta } from '@angular/platform-browser';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { TreeNode } from 'primeng/primeng';
 import { MenuItem } from 'primeng/api';
@@ -76,13 +76,11 @@ function compare_histories(a, b) {
   styleUrls: ['./landing.component.css']
 })
 
-export class LandingComponent implements OnInit {
+export class LandingComponent implements OnInit, OnChanges {
   layoutCompact: boolean = true;
   layoutMode: string = 'horizontal';
   profileMode: string = 'inline';
   // msgs: Message[] = [];
-  exception: string;
-  errorMsg: string;
   status: string;
   searchValue: string;
   keyword: string;
@@ -134,16 +132,38 @@ export class LandingComponent implements OnInit {
    */
   ngOnInit() {
     this.searchValue = this.route.snapshot.paramMap.get('id');
-    // this.errorMsg = 'The requested record id ' + this.searchValue + ' does not match with any records in the system';
 
     if (this.route.snapshot.url.toString().includes("ark"))
       this.searchValue = this.route.snapshot.url.toString().split("/id/").pop();
+  }
 
-    this.onSuccess();
+  /*
+   * use the record metadata if the metadata gets updated
+   */
+  ngOnChanges() {
+    if (this.record["@id"] === undefined || this.record["@id"] === null) {
+      this.isId = false;
+      return;
+    }
+
+    console.log("metadata update detected");
+    this.HomePageLink = this.displayHomePageLink();
 
     this.ediid = this.record.ediid;
     this.commonVarService.setEdiid(this.ediid);
-    this.files = [];
+
+    this.type = this.record['@type'];
+    this.createNewDataHierarchy();
+    if (this.files.length > 0) {
+      this.setLeafs(this.files[0].data);
+    }
+    if (this.record['doi'] !== undefined && this.record['doi'] !== "")
+      this.isDOI = true;
+    if ("hasEmail" in this.record['contactPoint'])
+      this.isEmail = true;
+    this.assessNewer();
+    this.updateMenu();
+    return Promise.resolve(this.files);
   }
 
   /*
@@ -160,42 +180,6 @@ export class LandingComponent implements OnInit {
       // else
       window.history.replaceState({}, '', '/od/id/' + this.searchValue);
     }
-  }
-
-  /**
-  * If Search is successful populate list of keywords themes and authors
-  */
-  onSuccess() {
-
-    this.HomePageLink = this.displayHomePageLink();
-
-    if (this.record["@id"] === undefined || this.record["@id"] === "") {
-      this.isId = false;
-      return;
-    }
-
-    this.type = this.record['@type'];
-    this.createNewDataHierarchy();
-    if (this.files.length > 0) {
-      this.setLeafs(this.files[0].data);
-    }
-    if (this.record['doi'] !== undefined && this.record['doi'] !== "")
-      this.isDOI = true;
-    if ("hasEmail" in this.record['contactPoint'])
-      this.isEmail = true;
-    this.assessNewer();
-    this.updateMenu();
-    return Promise.resolve(this.files);
-  }
-
-  /**
-   * If search is unsuccessful push the error message
-   */
-  onError(error: any) {
-    this.exception = (<any>error).ex;
-    this.errorMsg = (<any>error).message;
-    this.status = (<any>error).httpStatus;
-    //this.msgs.push({severity:'error', summary:this.errorMsg + ':', detail:this.status + ' - ' + this.exception});
   }
 
   turnSpinnerOff() {
@@ -341,7 +325,7 @@ export class LandingComponent implements OnInit {
 
   filescount: number = 0;
   createNewDataHierarchy() {
-    var testdata = {}
+    var testdata = {};
     if (this.record['components'] != null) {
       testdata["data"] = this.arrangeIntoTree(this.record['components']);
       this.files.push(testdata);

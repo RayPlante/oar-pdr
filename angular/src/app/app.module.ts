@@ -34,6 +34,7 @@ import { NgModule } from '@angular/core';
 import { ErrorHandler } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 
+import { ErrorsModule, AppErrorHandler } from './errors/errors.module';
 import { FrameModule } from './frame/frame.module';
 import { ConfigModule } from './config/config.module';
 import { AppRoutingModule } from './app-routing.module';
@@ -56,6 +57,7 @@ import { fakeBackendProvider } from './_helpers/fakeBackendInterceptor';
       HttpClientModule,
       ConfigModule,        // provider for AppConfig
       FrameModule,
+      ErrorsModule,
       LandingPageModule,
       AppRoutingModule,
 
@@ -69,6 +71,9 @@ import { fakeBackendProvider } from './_helpers/fakeBackendInterceptor';
   ],
   exports: [],
   providers: [
+      AppErrorHandler,
+      { provide: ErrorHandler, useClass: AppErrorHandler },
+      
     Title,
     Meta,
     CommonVarService,

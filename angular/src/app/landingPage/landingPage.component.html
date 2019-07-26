@@ -32,7 +32,7 @@
               <div class="d-none d-md-block d-lg-block d-xl-block ">
 
                 <!-- side tool menu -->
-                <tools-menu #menu2 [record]="md" [isPopup]="false"
+                <tools-menu #menu2 *ngIf="inBrowser" [record]="md" [isPopup]="false"
                                    (show_citation)="showCitation($event)"
                                    (scroll)="goToSection($event)"></tools-menu>
               </div>

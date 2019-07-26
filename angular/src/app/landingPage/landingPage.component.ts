@@ -1,5 +1,5 @@
-import { Component, OnInit, ElementRef, PLATFORM_ID, Inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, AfterViewInit, ElementRef, PLATFORM_ID, Inject } from '@angular/core';
+import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { Title }    from '@angular/platform-browser';
 
@@ -28,13 +28,14 @@ import { NerdmRes } from '../nerdm/nerdm';
         Title
     ]
 })
-export class LandingPageComponent implements OnInit {
+export class LandingPageComponent implements OnInit, AfterViewInit {
     layoutCompact: boolean = true;
     layoutMode: string = 'horizontal';
     profileMode: string = 'inline';
     md : NerdmRes = null;
     reqId : string;              // the ID that was used to request this page
     inBrowser : boolean = false;
+    show_metadata : boolean = false;
 
     /**
      * create the component.
@@ -81,6 +82,32 @@ export class LandingPageComponent implements OnInit {
         );
     }
 
+    /*
+     * Function after view init
+     */
+    ngAfterViewInit() {
+        if (this.inBrowser) {
+            // detect when we have navigated to a particular section
+            this.router.events.subscribe(s => {
+                if (s instanceof NavigationEnd) {
+                    const tree = this.router.parseUrl(this.router.url);
+                    if (tree.fragment) {
+                        const element = document.querySelector("#" + tree.fragment);
+                        if (element) {
+                            setTimeout(() => {
+                                element.scrollIntoView({ behavior: "smooth",
+                                                         block: "start", inline: "nearest" });
+                            }, 1);
+                        }
+                    }
+                }
+            });
+
+            if (this.md) 
+                window.history.replaceState({}, '', '/od/id/' + this.reqId);
+        }
+    }
+
     /**
      * make use of the metadata to initialize this component.  This is called asynchronously
      * from ngOnInit after the metadata has been successfully retrieved (and saved to this.md).
@@ -111,4 +138,17 @@ export class LandingPageComponent implements OnInit {
      * return the current document title
      */
     getDocumentTitle() : string { return this.titleSv.getTitle(); }
+
+    /**
+     * scroll the view to a named section of the page
+     */
+    goToSection(secname : string) {
+        // see ngAfterViewInit() for handling of actual scrolling action
+        this.show_metadata = (secname == "metadata");
+        this.router.navigate(['/od/id/', this.reqId], { fragment: secname });
+    }
+
+    showCitation(yesno : boolean) {
+        console.log("Need to show citation here and now")
+    }
 }

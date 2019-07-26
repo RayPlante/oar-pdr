@@ -98,7 +98,6 @@ export class LandingComponent implements OnInit, OnChanges {
   isCopied: boolean = false;
   distdownload: string = '';
   serviceApi: string = '';
-  metadata: boolean = false;
   files: TreeNode[] = [];
   isCollapsedContent: boolean = false;
   pdrApi: string = '';
@@ -116,6 +115,7 @@ export class LandingComponent implements OnInit, OnChanges {
 
   @Input() record : NerdmRes|null = null;  // this should be set by the parent component
   @Input() inBrowser : boolean = false;  
+  @Input() metadata : boolean = false;
 
   /**
    * Creates an instance of the SearchPanel
@@ -165,22 +165,6 @@ export class LandingComponent implements OnInit, OnChanges {
     this.assessNewer();
     this.updateMenu();
     return Promise.resolve(this.files);
-  }
-
-  /*
-    Function after view init
-  */
-  ngAfterViewInit() {
-    this.useFragment();
-    var recordid;
-    if (this.record != null && this.inBrowser) {
-      // recordid = this.searchValue;
-      // // recordid = "ark:/88434/"+this.searchValue;
-      // if(this.searchValue.includes("ark"))
-      // window.history.replaceState( {} , '', '/od/id/'+this.searchValue );
-      // else
-      window.history.replaceState({}, '', '/od/id/' + this.searchValue);
-    }
   }
 
   turnSpinnerOff() {

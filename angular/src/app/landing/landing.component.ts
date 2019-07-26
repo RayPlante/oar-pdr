@@ -99,7 +99,8 @@ export class LandingComponent implements OnInit, OnChanges {
   distdownload: string = '';
   serviceApi: string = '';
   metadata: boolean = false;
-  private files: TreeNode[] = [];
+  files: TreeNode[] = [];
+  isCollapsedContent: boolean = false;
   pdrApi: string = '';
   isResultAvailable: boolean = true;
   isId: boolean = true;
@@ -113,7 +114,7 @@ export class LandingComponent implements OnInit, OnChanges {
   isLoading: boolean = true;
   HomePageLink: boolean = false;
 
-  @Input() record : NerdmRes = null;  // this should be set by the parent component
+  @Input() record : NerdmRes|null = null;  // this should be set by the parent component
   @Input() inBrowser : boolean = false;  
 
   /**

@@ -3,6 +3,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { Title }    from '@angular/platform-browser';
 
+import { MenuItem } from 'primeng/api';
+
 import { AppConfig } from '../config/config';
 import { MetadataService } from '../nerdm/nerdm.service';
 import { NerdmRes } from '../nerdm/nerdm';

@@ -1,32 +1,3 @@
-<style id="antiClickjack">
-  body {
-    display: none !important;
-  }
-</style>
-<script type="text/javascript">
-  if (self === top) {
-    var antiClickjack = document.getElementById("antiClickjack");
-    if (antiClickjack !== null && antiClickjack !== undefined)
-      antiClickjack.parentNode.removeChild(antiClickjack);
-
-  } else {
-    top.location = self.location;
-  }
-</script>
-
-<div class="ui-grid ui-grid-responsive ui-grid-pad center">
-  <div class="card landingcard">
-    <!-- <div id="overlay" *ngIf="isLocalProcessing"> -->
-    <div class="loading" *ngIf="isLocalProcessing"></div>
-    <!-- </div> -->
-    <div *ngIf="record === null || record.length === 0">
-      <div class="ui-g-10 ui-md-10 ui-lg-10 ui-sm-12" style="padding-left: 1%">
-        <b>Landing page is loading...</b>
-      </div>
-    </div>
-    <div *ngIf="record && record.length !== 0">
-      <div class="ui-g">
-        <div class="ui-g-10 ui-md-10 ui-lg-10 ui-sm-12">
           <div class="ui-g">
             <div class="ui-g-12 ui-md-12 ui-lg-12 ui-sm-12">
               <span class="recordType" [ngSwitch]="record['@type'][0]">
@@ -35,12 +6,6 @@
                 <b *ngSwitchCase="'nrdp:PublicDataResource'">Public Data Resource</b>
                 <b *ngSwitchDefault></b>
               </span>
-              <div *ngIf="record.length !== 0 && inBrowser"
-                   class="ui-sm-1 d-none d-block d-sm-block d-md-none ">
-                <button style="float: right" type="button" pButton icon="faa faa-list"
-                  class="ui-button ui-button-icon-only" (click)="menu3.toggle($event)"></button>
-                <p-menu #menu3 class="rightMenuStylePop" popup="popup" [model]="rightmenu"></p-menu>
-              </div>
               <br>
               <span class="title" style="text-align: left; vertical-align: top; ">
                 <h2>{{record.title}}</h2>
@@ -189,18 +154,4 @@
 
             </div>
           </div>
-        </div>
 
-        <div class="ui-g-2 ui-md-2 ui-lg-2 ui-sm-12">
-          <div class="ui-g" style="position:sticky; top:0; ">
-            <div class="ui-g-12 ui-md-12 ui-lg-12 ui-sm-12">
-              <div class="d-none d-md-block d-lg-block d-xl-block ">
-                <p-menu class="rightMenuStyle" [model]="rightmenu"></p-menu>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>

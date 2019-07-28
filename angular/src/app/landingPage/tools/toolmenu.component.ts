@@ -85,13 +85,12 @@ export class ToolMenuComponent implements OnChanges {
             this.createMenuItem("Description", "faa faa-arrow-circle-right",
                                 (event) => { this.goToSection('description'); }, null)
         );
-        if ((this.record['components'] && this.record['components'].length > 0) ||
-            (this.record['landingPage'] && this.record['landingPage'].indexOf('/od/id/') === -1)
-           ) // do better
-            subitems.push(
-                this.createMenuItem("Data Access", "faa faa-arrow-circle-right",
-                                    (event) => { this.goToSection('dataAccess'); }, null)
-            );
+
+        // is it possible to not have a data access section?
+        subitems.push(
+            this.createMenuItem("Data Access", "faa faa-arrow-circle-right",
+                                (event) => { this.goToSection('dataAccess'); }, null)
+        );
         if (this.record['references'])
             subitems.push(
                 this.createMenuItem("References", "faa faa-arrow-circle-right ",

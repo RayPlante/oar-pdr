@@ -47,8 +47,8 @@ describe('ToolMenuComponent', () => {
         expect(component.isPopup).toBe(false);
 
         let cmpel = fixture.nativeElement;
-        let pels = cmpel.querySelectorAll("a");
-        expect(pels.length).toBeGreaterThan(5);
+        let pels = cmpel.querySelectorAll("p-menu");
+        expect(pels.length).toBeGreaterThan(0);
         
     });
 });

@@ -105,6 +105,21 @@ export const testdata : {} = {
             ]
         },
         {
+            "accessURL": "https://doi.org/XXXXX/MMMMM",
+            "description": "DOI Access",
+            "title": "DOI Access",
+            "mediaType": "text/html",
+            "@type": [
+                "nrdp:Hidden",
+                "nrdp:AccessPage",
+                "dcat:Distribution"
+            ],
+            "@id": "cmps/#DOI",
+            "_extensionSchemas": [
+                "https://www.nist.gov/od/dm/nerdm-schema/pub/v0.1#/definitions/AccessPage"
+            ]
+        },
+        {
             "accessURL": "https://www.nist.gov/itl/iad/image-group/special-database-32-multiple-encounter-dataset-meds",
             "description": "zip file with html page with jpeg images of faces",
             "title": "Multiple Encounter Dataset(MEDS-I)",
@@ -136,6 +151,75 @@ export const testdata : {} = {
     ],
     "programCode": [
         "006:045"
+    ]
+  },
+
+  "test2": {
+    "@context": [
+        "https://www.nist.gov/od/dm/nerdm-pub-context.jsonld",
+        {
+            "@base": "ark:/88434/mds0000fbk"
+        }
+    ],
+    "_schema": "https://www.nist.gov/od/dm/nerdm-schema/v0.1#",
+    "_extensionSchemas": [
+        "https://www.nist.gov/od/dm/nerdm-schema/pub/v0.1#/definitions/DataPublication"
+    ],
+    "@type": [
+        "nrdp:PublicDataResource"
+    ],
+    "@id": "ark:/88434/mds0000fbk",
+    "ediid": "ark:/88434/mds0000fbk",
+    "doi": "doi:XXXXX/MMMMM",
+    "title": "Test2",
+    "version": "12.1",
+    "authors": [
+        {
+            "familyName": "Doe",
+            "givenName": "John",
+            "fn": "John Doe"
+        },
+        {
+            "familyName": "Plant",
+            "givenName": "Robert",
+            "fn": "R. Plant"
+        }
+    ],
+    "contactPoint": {
+        "hasEmail": "mailto:patricia.flanagan@nist.gov",
+        "fn": "Patricia Flanagan"
+    },
+    "modified": "2011-07-11",
+    "landingPage": "https://www.nist.gov/itl/iad/image-group/special-database-32-multiple-encounter-dataset-meds",
+    "description": [ "para1", "para2" ],
+    "publisher": {
+        "@type": "org:Organization",
+        "name": "National Institute of Standards and Technology"
+    },
+    "components": [
+        {
+            "@type": [ "nrdp:DataFile", "dcat:Distribution" ],
+            "filepath": "README.txt",
+            "downloadURL": "https://data.nist.gov/od/ds/mds0000fbk/README.txt"
+        },
+        {
+            "@type": [ "nrdp:Subcollection" ],
+            "filepath": "data",
+        },
+        {
+            "@type": [ "nrdp:Subcollection", "nrd:Hidden" ],
+            "filepath": "secret",
+        },
+        {
+            "@type": [ "nrdp:DataFile", "dcat:Distribution" ],
+            "filepath": "data/file.csv",
+            "downloadURL": "https://data.nist.gov/od/ds/mds0000fbk/data/file.csv"
+        },
+        {
+            "@type": [ "nrdp:DataFile", "nrd:Hidden" ],
+            "filepath": "data/secret.csv",
+            "downloadURL": "https://data.nist.gov/od/ds/mds0000fbk/data/file.csv"
+        }
     ]
   }
 };

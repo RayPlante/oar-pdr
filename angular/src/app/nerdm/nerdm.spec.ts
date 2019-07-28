@@ -136,12 +136,10 @@ describe('NERDResource', function() {
     it("getCitation", () => {
         let nrd = new nerdm.NERDResource(testdata['test2']);
         let cstr = nrd.getCitation();
-        expect(cstr.startsWith("Doe, John, Plant, Robert (2011), Test2, National Institute of Standards and Technology, https://doi.org/XXXXX/MMMMM (Accessed ")).toBe(true);
-        // expect(cstr).toEqual("Doe, John, Plant, Robert (2011) Test2, National Institute of Standards and Technology, https://doi.org/XXXXX/MMMMM (Accessed ");
+        expect(cstr).toContain("Doe, John, Plant, Robert (2011), Test2, National Institute of Standards and Technology, https://doi.org/XXXXX/MMMMM (Accessed ");
 
         nrd = new nerdm.NERDResource(testdata['test1']);
         cstr = nrd.getCitation();
-//        expect(cstr).toBe("Patricia Flanagan (2011), Multiple Encounter Dataset (MEDS-I) - NIST Special Database 32, National Institute of Standards and Technology, https://www.nist.gov/itl/iad/image-group/special-database-32-multiple-encounter-dataset-meds (Accessed ");
         expect(cstr).toContain("Patricia Flanagan (2011), Multiple Encounter Dataset (MEDS-I) - NIST Special Database 32, National Institute of Standards and Technology, https://www.nist.gov/itl/iad/image-group/special-database-32-multiple-encounter-dataset-meds (Accessed ");
 
         nrd = new nerdm.NERDResource(_.cloneDeep(testdata['test1']));

@@ -10,6 +10,7 @@
     "start": "ng serve --aot",
     "build": "ng build --aot",
     "test": "ng test --browsers=ChromeHeadless",
+    "dbtest": "ng test --browsers=DebugChrome --karmaConfig=karma.db.config.js",
     "e2e": "ng e2e",
     "lint": "ng lint oar-lps",
     "build:client-and-server-bundles": "ng build --prod && ng run oar-lps:server:production",

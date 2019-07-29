@@ -7,6 +7,7 @@ import { NerdmModule } from '../nerdm/nerdm.module';
 import { LandingPageComponent } from './landingPage.component';
 import { LandingModule } from '../landing/landing.module';
 import { ToolsModule } from './tools/tools.module';
+import { CitationModule } from './citation/citation.module';
 
 /**
  * A module supporting the complete display of landing page content associated with 
@@ -18,6 +19,7 @@ import { ToolsModule } from './tools/tools.module';
         NerdmModule,    // provider for MetadataService (which depends on AppConfig)
         LandingModule,
         ToolsModule,
+        CitationModule,
         ButtonModule
     ],
     declarations: [

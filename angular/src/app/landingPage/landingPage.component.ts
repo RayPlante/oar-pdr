@@ -7,7 +7,7 @@ import { MenuItem } from 'primeng/api';
 
 import { AppConfig } from '../config/config';
 import { MetadataService } from '../nerdm/nerdm.service';
-import { NerdmRes } from '../nerdm/nerdm';
+import { NerdmRes, NERDResource } from '../nerdm/nerdm';
 
 /**
  * A component providing the complete display of landing page content associated with 
@@ -36,6 +36,8 @@ export class LandingPageComponent implements OnInit, AfterViewInit {
     reqId : string;              // the ID that was used to request this page
     inBrowser : boolean = false;
     show_metadata : boolean = false;
+    citetext : string = null;
+    citationVisible : boolean = false;
 
     /**
      * create the component.
@@ -148,7 +150,25 @@ export class LandingPageComponent implements OnInit, AfterViewInit {
         this.router.navigate(['/od/id/', this.reqId], { fragment: secname });
     }
 
-    showCitation(yesno : boolean) {
-        console.log("Need to show citation here and now")
+    /**
+     * display or hide citation information in a popup window.
+     * @param yesno   whether to show (true) or hide (false)
+     */
+    showCitation(yesno : boolean) : void {
+        this.citationVisible = yesno;
+    }
+
+    /**
+     * toggle the visibility of the citation pop-up window
+     */
+    toggleCitation() : void { this.citationVisible = !this.citationVisible; }
+
+    /**
+     * return text representing the recommended citation for this resource
+     */
+    getCitation() : string {
+        if (! this.citetext) 
+            this.citetext = (new NERDResource(this.md)).getCitation();
+        return this.citetext;
     }
 }

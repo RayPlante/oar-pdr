@@ -32,7 +32,7 @@ export class ToolMenuComponent implements OnChanges {
     @Input() isPopup : boolean = false;
 
     // signal for triggering display of the citation information
-    @Output() show_citation = new EventEmitter<boolean>();
+    @Output() toggle_citation = new EventEmitter<boolean>();
 
     // signal for scrolling to a section within the page
     @Output() scroll = new EventEmitter<string>();
@@ -109,7 +109,7 @@ export class ToolMenuComponent implements OnChanges {
         // Use
         subitems = [
             this.createMenuItem('Citation', "faa faa-angle-double-right",
-                                (event) => { this.showCitation(true); }, null),
+                                (event) => { this.toggleCitation(); }, null),
             this.createMenuItem("Fair Use Statement", "faa faa-external-link", null,
                                 this.record['license'])
         ];
@@ -163,19 +163,16 @@ export class ToolMenuComponent implements OnChanges {
     }
 
     /**
-     * switch the display the Citation information.
+     * switch the display of the Citation information:  if it is currently showing,
+     * it should be hidden; if it is not visible, it should be shown.  This method
+     * is trigger by clicking on the "Citation" link in the menu; clicking 
+     * alternatively both shows and hides the display.
      *
-     * This is implemented as a pop-up dialog
-     *
-     * @param yesno   a flag indicating whether the citation should be displayed (true) or 
-     *                hidden (false)
+     * The LandingPageComponent handles the actual display of the information
+     * (currently implemented as a pop-up).  
      */
-    showCitation(yesno : boolean) {
-        if (yesno) 
-            console.info("displaying citation info");
-        else
-            console.info("hiding citation info");
-        this.show_citation.emit(yesno);
+    toggleCitation() {
+        this.toggle_citation.emit(true);
     }
     
     /**

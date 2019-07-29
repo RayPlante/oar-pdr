@@ -14,7 +14,7 @@
       <button style="position: absolute; top: 1.0rem; left: 1.5rem" type="button"
               pButton icon="faa faa-list" class="ui-button ui-button-icon-only" 
               (click)="menu3.togglePopup($event)"></button>
-      <tools-menu #menu3 [record]="md" [isPopup]="true" (show_citation)="showCitation($event)"
+      <tools-menu #menu3 [record]="md" [isPopup]="true" (toggle_citation)="toggleCitation()"
                          (scroll)="goToSection($event)"></tools-menu>
     </div>
 
@@ -27,6 +27,12 @@
                        [metadata]="show_metadata"></app-landing>
 
         </div>
+
+        <div *ngIf="inBrowser">
+          <citation-popup [citetext]="getCitation()"
+                          [(visible)]="citationVisible"></citation-popup>
+        </div>
+
         <div class="ui-g-2 ui-md-2 ui-lg-2 ui-sm-12">
           <div class="ui-g" style="position: sticky; top: 0;">
             <div class="ui-g-12 ui-md-12 ui-lg-12 ui-sm-12">
@@ -34,7 +40,7 @@
 
                 <!-- side tool menu -->
                 <tools-menu #menu2 *ngIf="inBrowser" [record]="md" [isPopup]="false"
-                                   (show_citation)="showCitation($event)"
+                                   (toggle_citation)="toggleCitation()"
                                    (scroll)="goToSection($event)"></tools-menu>
               </div>
             </div>

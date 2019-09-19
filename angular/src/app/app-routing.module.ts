@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { LandingAboutComponent } from './landingAbout/landingAbout.component';
 import { LandingComponent } from './landing/landing.component';
+import { LandingPageComponent } from './landingPage/landingPage.component';
 import { NoidComponent } from './landing/noid.component';
 import { NerdmComponent } from './landing/nerdm.component';
 // import { SearchResolve } from './landing/search-service.resolve';
@@ -18,6 +19,12 @@ const routes: Routes = [
         component: LandingAboutComponent
       }]
   },
+    { path: 'tod/id',             
+      children: [
+        { path: '',              component: NoidComponent          },
+        { path: ':id',           component: LandingPageComponent   }
+      ]
+    },
   {
     path: 'od/id/:id',
     children: [

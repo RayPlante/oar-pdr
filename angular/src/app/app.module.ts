@@ -4,10 +4,6 @@ import {
   CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA
 } from '@angular/core';
 
-import { Collaspe } from './landing/collapseDirective/collapse.directive';
-import { KeyValuePipe } from './landing/keyvalue.pipe';
-import { MetadataView } from './landing/metadata/metadataview.component';
-import { SearchResolve } from './landing/search-service.resolve';
 import { AppShellRenderDirective } from './directives/app-shell-render.directive';
 import { enableProdMode } from '@angular/core';
 import { ComboBoxPipe } from './shared/combobox/combo-box.pipe';
@@ -17,16 +13,13 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { TreeModule, FieldsetModule, DialogModule, OverlayPanelModule } from 'primeng/primeng';
-import { MenuModule } from 'primeng/menu';
-import { TreeTableModule } from 'primeng/treetable';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { BrowserModule, BrowserTransferStateModule } from '@angular/platform-browser';
 import { SharedModule } from './shared/shared.module';
 import { FragmentPolyfillModule } from "./fragment-polyfill.module";
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { ConfirmDialogModule, SelectItem, DropdownModule, ConfirmationService, Message } from 'primeng/primeng';
+import { SelectItem, DropdownModule, ConfirmationService, Message } from 'primeng/primeng';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastrModule } from 'ngx-toastr';
 import { NgModule } from '@angular/core';
@@ -37,16 +30,12 @@ import { AppRoutingModule } from './app-routing.module';
 import { DataTableModule } from 'primeng/primeng';
 import { ContenteditableModel } from './directives/contenteditable-model.directive';
 
-import { NoidComponent } from './landing/noid.component';
-import { NerdmComponent } from './landing/nerdm.component';
 import { ErrorComponent, UserErrorComponent } from './landing/error.component';
 import { DatacartComponent } from './datacart/datacart.component';
 import { ModalComponent } from './directives';
 import { ComboBoxComponent } from './shared/combobox/combo-box.component';
 import { AppComponent } from './app.component';
-import { LandingComponent } from './landing/landing.component';
-import { DescriptionComponent } from './landing/description/description.component';
-import { MetadataComponent } from './landing/metadata/metadata.component';
+import { LandingPageModule } from './landingPage/landingPage.module';
 import { LandingAboutComponent } from './landingAbout/landingAbout.component';
 import { SearchTopicsComponent } from './landing/search-topics/search-topics.component';
 import { DescriptionPopupComponent } from './landing/description/description-popup/description-popup.component';
@@ -55,7 +44,6 @@ import { ContactPopupComponent } from './landing/contact-popup/contact-popup.com
 import { ConfirmationDialogComponent } from './shared/confirmation-dialog/confirmation-dialog.component';
 enableProdMode();
 
-import { SearchService } from './shared/search-service/index';
 import { CommonVarService } from './shared/common-var/index';
 import { CartService } from "./datacart/cart.service";
 import { AppShellNoRenderDirective } from './directives/app-shell-no-render.directive';
@@ -75,10 +63,8 @@ import { fakeBackendProvider } from './_helpers/fakeBackendInterceptor';
 
 @NgModule({
   declarations: [
-    AppComponent,
-    LandingAboutComponent, LandingComponent, DatacartComponent,
-    Collaspe, MetadataComponent, DescriptionComponent,
-    KeyValuePipe, MetadataView, NoidComponent, NerdmComponent,
+    AppComponent, 
+    LandingAboutComponent, DatacartComponent,
     ErrorComponent, UserErrorComponent,ComboBoxComponent,ComboBoxPipe,
     AppShellNoRenderDirective, AppShellRenderDirective, ModalComponent, ContenteditableModel, SearchTopicsComponent, DescriptionPopupComponent, AuthorPopupComponent, ContactPopupComponent,
     ConfirmationDialogComponent
@@ -87,24 +73,22 @@ import { fakeBackendProvider } from './_helpers/fakeBackendInterceptor';
       HttpClientModule,
       ConfigModule,        // provider for AppConfig
       FrameModule,
+      LandingPageModule,
       AppRoutingModule,
       FragmentPolyfillModule.forRoot({
           smooth: true
       }),
       FormsModule, ReactiveFormsModule,
       CommonModule, SharedModule, BrowserAnimationsModule, FormsModule, TooltipModule,
-      TreeTableModule, TreeModule, MenuModule, FieldsetModule, DialogModule, OverlayPanelModule,
-      ButtonModule, ProgressSpinnerModule, ConfirmDialogModule, ProgressBarModule,DataTableModule,
+      ButtonModule, ProgressSpinnerModule, ProgressBarModule, DataTableModule,
       ToastrModule.forRoot({
         toastClass: 'toast toast-bootstrap-compatibility-fix'
       }), NgbModule.forRoot()
   ],
-  exports: [Collaspe],
+  exports: [],
   providers: [
     Title,
     Meta,
-    SearchService,
-    SearchResolve,
     CommonVarService,
     CartService,
     DownloadService,

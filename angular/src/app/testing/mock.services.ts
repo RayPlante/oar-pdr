@@ -1,6 +1,7 @@
 /**
  * This contains mock implementations of angular interfaces for use in unit testing
  */
+import { Injectable } from '@angular/core';
 import { convertToParamMap, ParamMap, Params, UrlSegment } from '@angular/router';
 import { Title }    from '@angular/platform-browser';
 import { ReplaySubject } from 'rxjs';
@@ -96,6 +97,7 @@ export class MockActivatedRoute {
 /**
  * @deprecated
  */
+@Injectable()
 export class MockTitle extends Title {
     private _title : string = null;
     constructor() { super(null); }

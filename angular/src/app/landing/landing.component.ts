@@ -10,7 +10,6 @@ import { AppConfig } from '../config/config';
 import { NerdmRes } from '../nerdm/nerdm';
 import { CommonVarService } from '../shared/common-var';
 import { tap } from 'rxjs/operators';
-import { AuthService } from '../shared/auth-service/auth.service';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { ModalService } from '../shared/modal-service';
 import { AuthorPopupComponent } from './author-popup/author-popup.component';
@@ -201,7 +200,6 @@ export class LandingComponent implements OnInit {
     @Inject(APP_ID) private appId: string,
     private commonVarService: CommonVarService,
     private gaService: GoogleAnalyticsService,
-    private authService: AuthService,
     private ngbModal: NgbModal,
     private modalService: ModalService,
     private customizationServiceService: CustomizationServiceService,
@@ -231,13 +229,6 @@ export class LandingComponent implements OnInit {
     });
 
     this.editEnabled = cfg.get("editEnabled", "");
-  }
-
-  /*
-  * Check if user is logged in.
-  */
-  loggedIn() {
-    return this.authService.loggedIn();
   }
 
   /**
@@ -829,6 +820,7 @@ export class LandingComponent implements OnInit {
   */
   setRecordEditmode(mode: boolean) {
     this.recordEditmode = mode;
+/*      
     if (mode && !this.authService.loggedIn()) {
       this.authService.loginUser()
         .subscribe(
@@ -851,9 +843,12 @@ export class LandingComponent implements OnInit {
           }
         )
     }
-
+*/
   }
 
+  loggedIn() : boolean {
+      return true;
+  }
   /*
    *  Set record level edit mode (for the edit button at top)
    */

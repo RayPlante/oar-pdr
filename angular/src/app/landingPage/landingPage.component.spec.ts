@@ -22,6 +22,7 @@ import { testdata } from '../../environments/environment';
 
 import { GoogleAnalyticsService } from '../shared/ga-service/google-analytics.service';
 import { ModalService } from '../shared/modal-service';
+import { ToastrModule } from 'ngx-toastr';
 
 describe('LandingPageComponent', () => {
     let component : LandingPageComponent;
@@ -66,7 +67,7 @@ describe('LandingPageComponent', () => {
     let setupComponent = function() {
         TestBed.configureTestingModule({
             imports: [ HttpClientModule, BrowserAnimationsModule, LandingPageModule,
-                       RouterTestingModule.withRoutes(routes) ],
+                       RouterTestingModule.withRoutes(routes), ToastrModule.forRoot() ],
             providers: [
                 { provide: ActivatedRoute,  useValue: route },
                 { provide: ElementRef,      useValue: null },

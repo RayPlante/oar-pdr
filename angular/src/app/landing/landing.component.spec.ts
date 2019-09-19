@@ -26,38 +26,47 @@ import { of } from 'rxjs';
 import { GoogleAnalyticsService } from '../shared/ga-service/google-analytics.service';
 import { ToastrModule } from 'ngx-toastr';
 
-  describe('Landing Component', () => {
+import { CartService } from "../datacart/cart.service";
+import { DownloadService } from "../shared/download-service/download-service.service";
+import { TestDataService } from '../shared/testdata-service/testDataService';
+import { testdata } from '../../environments/environment';
+
+describe('Landing Component', () => {
     let component: LandingComponent;
     let fixture: ComponentFixture<LandingComponent>;
     let cfg : AppConfig;
     let plid : Object = "browser";
     let ts : TransferState = new TransferState();
     let de: DebugElement;
-    let sampleData: any = require('../../assets/sample3.json');
 
-    beforeEach(async(() => {
+    let nrd = testdata['test1'];
+
+    beforeEach(() => {
       cfg = (new AngularEnvironmentConfigService(plid, ts)).getConfig() as AppConfig;
       cfg.locations.pdrSearch = "https://goob.nist.gov/search";
       cfg.status = "Unit Testing";
       cfg.appVersion = "2.test";
 
       TestBed.configureTestingModule({
-      declarations: [ LandingComponent, Collaspe,DescriptionComponent
-                    ],
-      imports:[ MenuModule,DialogModule, FormsModule, TreeModule,FieldsetModule, HttpModule ,RouterTestingModule, HttpClientTestingModule, BrowserAnimationsModule,
-      ToastrModule.forRoot()],
+      declarations: [ LandingComponent, Collaspe,DescriptionComponent ],
+      imports:[
+          MenuModule,DialogModule, FormsModule, TreeModule,FieldsetModule, HttpModule,
+          RouterTestingModule, HttpClientTestingModule, BrowserAnimationsModule,
+          ToastrModule.forRoot()
+      ],
       schemas: [ CUSTOM_ELEMENTS_SCHEMA ,NO_ERRORS_SCHEMA],
       providers: [
-        SearchService, GoogleAnalyticsService,
-        TransferState, CommonVarService, ModalService,
-        { provide: AppConfig, useValue: cfg }]
+          CommonVarService, CartService, DownloadService, TestDataService,
+          GoogleAnalyticsService, ModalService,
+          { provide: AppConfig, useValue: cfg }
+      ]
       })
       .compileComponents();
-    }));
 
-    beforeEach(() => {
       fixture = TestBed.createComponent(LandingComponent);
       component = fixture.componentInstance;
+      component.record = nrd;
+      component.inBrowser = true;
       fixture.detectChanges();
     });
 

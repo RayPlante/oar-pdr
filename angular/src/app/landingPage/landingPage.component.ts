@@ -7,6 +7,8 @@ import { AppConfig } from '../config/config';
 import { MetadataService } from '../nerdm/nerdm.service';
 import { NerdmRes } from '../nerdm/nerdm';
 
+import { AuthService } from '../shared/auth-service/auth.service';
+
 /**
  * A component providing the complete display of landing page content associated with 
  * a resource identifier.  This content is handle in various sub-components.
@@ -46,7 +48,8 @@ export class LandingPageComponent implements OnInit {
      */
     constructor(private route : ActivatedRoute, private router : Router, 
                 @Inject(PLATFORM_ID) private platformId: Object, public titleSv : Title, 
-                private cfg : AppConfig, private mdserv : MetadataService)
+                private cfg : AppConfig, private mdserv : MetadataService,
+                private authService: AuthService)
     {
         this.reqId = this.route.snapshot.paramMap.get('id');
         this.inBrowser = isPlatformBrowser(platformId);
@@ -106,4 +109,11 @@ export class LandingPageComponent implements OnInit {
      * return the current document title
      */
     getDocumentTitle() : string { return this.titleSv.getTitle(); }
+    
+    /*
+     * return true if the client is logged in
+     */
+    isLoggedIn() : boolean {
+        return this.authService.loggedIn();
+    }
 }

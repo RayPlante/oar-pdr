@@ -9,7 +9,7 @@ import {TreeModule,TreeNode} from 'primeng/primeng';
 
 import { Collaspe } from './collapseDirective/collapse.directive';
 import {DescriptionComponent} from './description/description.component';
-import { MetadataComponent } from './metadata/metadata.component';
+// import { MetadataComponent } from './metadata/metadata.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { FormsModule } from '@angular/forms';
 import { CUSTOM_ELEMENTS_SCHEMA,NO_ERRORS_SCHEMA } from '@angular/core';
@@ -42,8 +42,7 @@ import { ToastrModule } from 'ngx-toastr';
       cfg.appVersion = "2.test";
 
       TestBed.configureTestingModule({
-      declarations: [ LandingComponent, Collaspe,DescriptionComponent,
-                      MetadataComponent
+      declarations: [ LandingComponent, Collaspe,DescriptionComponent
                     ],
       imports:[ MenuModule,DialogModule, FormsModule, TreeModule,FieldsetModule, HttpModule ,RouterTestingModule, HttpClientTestingModule, BrowserAnimationsModule,
       ToastrModule.forRoot()],
@@ -65,14 +64,4 @@ import { ToastrModule } from 'ngx-toastr';
     it('should check the landing component', async(() => {
       expect(component).toBeTruthy();
     }));
-
-    it('getData() should call searchById()', () => {
-      let service = TestBed.get(SearchService);
-      spyOn(service,'searchById').and.returnValue(of(sampleData));
-      fixture.detectChanges();
-      service.searchById().subscribe((result) => 
-        expect(result.description[0]).toContain("This NIST database of fingerprint")
-      );
-      component.getData().subscribe(result => expect(result.description[0]).toContain("This NIST database of fingerprint"));
-    });
 });

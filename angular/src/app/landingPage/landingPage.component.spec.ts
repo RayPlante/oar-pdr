@@ -20,6 +20,9 @@ import * as mock from '../testing/mock.services';
 import {RouterTestingModule} from "@angular/router/testing";
 import { testdata } from '../../environments/environment';
 
+import { GoogleAnalyticsService } from '../shared/ga-service/google-analytics.service';
+import { ModalService } from '../shared/modal-service';
+
 describe('LandingPageComponent', () => {
     let component : LandingPageComponent;
     let fixture : ComponentFixture<LandingPageComponent>;
@@ -69,7 +72,8 @@ describe('LandingPageComponent', () => {
                 { provide: ElementRef,      useValue: null },
                 { provide: AppConfig,       useValue: cfg },
                 { provide: MetadataService, useValue: mds },
-                CommonVarService, CartService, DownloadService, TestDataService
+                CommonVarService, CartService, DownloadService, TestDataService,
+                GoogleAnalyticsService, ModalService
             ]
         }).compileComponents();
 

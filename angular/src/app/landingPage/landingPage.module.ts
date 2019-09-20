@@ -1,6 +1,7 @@
 import { NgModule }     from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import { FrameModule } from '../frame/frame.module';
 import { NerdmModule } from '../nerdm/nerdm.module';
 import { LandingPageComponent } from './landingPage.component';
 import { LandingModule } from '../landing/landing.module';
@@ -13,6 +14,7 @@ import { LandingModule } from '../landing/landing.module';
     imports: [
         CommonModule,
         NerdmModule,    // provider for MetadataService (which depends on AppConfig)
+        FrameModule,
         LandingModule
     ],
     declarations: [

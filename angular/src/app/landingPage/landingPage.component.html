@@ -1,2 +1,7 @@
+<!-- message bar -->
+<pdr-message></pdr-message>
+
 <!-- landing page panel -->
-<app-landing [record]="md" [inBrowser]="inBrowser"></app-landing>
+<div *ngIf="md">
+  <app-landing [record]="md" [inBrowser]="inBrowser"></app-landing>
+</div>

@@ -41,7 +41,7 @@ describe('Landing Component', () => {
 
     let nrd = testdata['test1'];
 
-    beforeEach(() => {
+    beforeEach(async(() => {
       cfg = (new AngularEnvironmentConfigService(plid, ts)).getConfig() as AppConfig;
       cfg.locations.pdrSearch = "https://goob.nist.gov/search";
       cfg.status = "Unit Testing";
@@ -62,7 +62,9 @@ describe('Landing Component', () => {
       ]
       })
       .compileComponents();
+    }));
 
+    beforeEach(() => {
       fixture = TestBed.createComponent(LandingComponent);
       component = fixture.componentInstance;
       component.record = nrd;

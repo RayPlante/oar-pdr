@@ -847,7 +847,7 @@ export class LandingComponent implements OnInit {
   }
 
   loggedIn() : boolean {
-      return true;
+      return false;
   }
   /*
    *  Set record level edit mode (for the edit button at top)

@@ -6,6 +6,7 @@ import { Title }    from '@angular/platform-browser';
 import { AppConfig } from '../config/config';
 import { MetadataService } from '../nerdm/nerdm.service';
 import { NerdmRes } from '../nerdm/nerdm';
+import { UserMessageService } from '../frame/usermessage.service';
 
 import { AuthService } from '../shared/auth-service/auth.service';
 
@@ -25,7 +26,8 @@ import { AuthService } from '../shared/auth-service/auth.service';
     templateUrl: './landingPage.component.html',
     styleUrls: ['./landingPage.component.css'],
     providers: [
-        Title
+        Title,
+        UserMessageService
     ]
 })
 export class LandingPageComponent implements OnInit {
@@ -49,7 +51,7 @@ export class LandingPageComponent implements OnInit {
     constructor(private route : ActivatedRoute, private router : Router, 
                 @Inject(PLATFORM_ID) private platformId: Object, public titleSv : Title, 
                 private cfg : AppConfig, private mdserv : MetadataService,
-                private authService: AuthService)
+                private msgsrv : UserMessageService, private authService: AuthService)
     {
         this.reqId = this.route.snapshot.paramMap.get('id');
         this.inBrowser = isPlatformBrowser(platformId);
@@ -89,7 +91,15 @@ export class LandingPageComponent implements OnInit {
     useMetadata() : void {
         // set the document title
         this.setDocumentTitle();
-        
+        if (! this.isLoggedIn())
+            this.msgsrv.instruct("To see previously edited data or edit current data, " +
+                                 "click on Edit button.");
+        else if ('modified' in this.md)
+            this.msgsrv.instruct("This record was last updated on "+this.md['modified']+".");
+        else if ('issued' in this.md)
+            this.msgsrv.instruct("This record was last updated on "+this.md['issued']+".");
+        else
+            this.msgsrv.instruct("This record is unmodified")
     }
 
     /**
@@ -114,6 +124,7 @@ export class LandingPageComponent implements OnInit {
      * return true if the client is logged in
      */
     isLoggedIn() : boolean {
-        return this.authService.loggedIn();
+        // return this.authService.loggedIn();
+        return false;
     }
 }

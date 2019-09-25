@@ -187,6 +187,9 @@ export class LandingComponent implements OnInit {
     
   @Input() record : NerdmRes = null;  // this should be set by the parent component
   @Input() inBrowser : boolean = false;
+  @Input() recordEditModeTmp : boolean = false;  // This currently does nothing but is intended to
+                                                 // replace recordEditMode after save/discard has been
+                                                 // moved to the EditControlBar
 
   /**
    * Creates an instance of the SearchPanel

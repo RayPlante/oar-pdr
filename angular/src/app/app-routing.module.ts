@@ -19,22 +19,13 @@ const routes: Routes = [
         component: LandingAboutComponent
       }]
   },
-    { path: 'tod/id',             
-      children: [
-        { path: '',              component: NoidComponent          },
-        { path: ':id',           component: LandingPageComponent   }
-      ]
-    },
-  {
-    path: 'od/id/:id',
+  { path: 'od/id',             
     children: [
-      {
-        path: '',
-        component: LandingComponent,
-
-      }
+      { path: '',              component: NoidComponent          },
+      { path: ':id',           component: LandingPageComponent   }
     ]
-  }, {
+  },
+  {
     path: 'od/id/ark:/88434/:id',
     children: [
       {

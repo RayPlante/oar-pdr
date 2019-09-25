@@ -1,0 +1,22 @@
+<!-- Edit control bar -->
+<div class="ecbar">
+  <button pButton id="ecDiscard" type="submit" class="ecbutton" type="button"
+          (click)="confirmDiscardEdits()" [disabled]="!isEditing()">
+      <i class="faa faa-trash faa-1x icon-white ecbuttonicon"></i>
+      Discard
+  </button>
+
+  <button pButton id="ecSave" type="submit" class="ecbutton" type="button"
+          (click)="saveEdits()" [disabled]="!isEditing()">
+      <i class="faa faa-trash faa-1x icon-white ecbuttonicon"></i>
+      Save
+  </button>
+
+  <button pButton id="ecEdit" type="submit" class="ecbutton" type="button"
+          (click)="startEditing()" [disabled]="isEditing()">
+      <i class="faa faa-trash faa-1x icon-white ecbuttonicon"></i>
+      Edit
+  </button>
+
+</div>
+

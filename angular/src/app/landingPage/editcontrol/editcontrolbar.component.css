@@ -1,0 +1,21 @@
+.ecbar {
+    background-color: #153971;
+    color: #FFFFFF;
+    height: 3em;
+    padding-right: 1.5em
+}
+
+.ecbutton {
+    float:  right;
+    margin: .5em 0.5em .5em 0.5em;
+    width:  150px;
+    height: 2em;
+    background-color: green;
+    color:  white;
+}
+
+.ecbuttonicon {
+    color: #fff;
+    padding-left: .5em;
+    padding-right: .5em;
+}

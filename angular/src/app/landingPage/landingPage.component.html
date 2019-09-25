@@ -1,7 +1,13 @@
-<!-- message bar -->
-<pdr-message></pdr-message>
+<div *ngIf="md && cfg.get('editEnabled')">
+  <!-- edit control bar -->
+  <pdr-edit-control (editModeChanged)="setEditMode($event)"
+                    (updatedMD)="replaceMetadata($event)"></pdr-edit-control>
+
+  <!-- message bar -->
+  <pdr-message></pdr-message>
+</div>
 
 <!-- landing page panel -->
 <div *ngIf="md">
-  <app-landing [record]="md" [inBrowser]="inBrowser"></app-landing>
+  <app-landing [record]="md" [inBrowser]="inBrowser" [recordEditModeTmp]="editingOn"></app-landing>
 </div>

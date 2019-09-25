@@ -34,9 +34,11 @@ export class LandingPageComponent implements OnInit {
     layoutCompact: boolean = true;
     layoutMode: string = 'horizontal';
     profileMode: string = 'inline';
+
     md : NerdmRes = null;
     reqId : string;              // the ID that was used to request this page
     inBrowser : boolean = false;
+    editingOn : boolean = false;
 
     /**
      * create the component.
@@ -50,8 +52,7 @@ export class LandingPageComponent implements OnInit {
      */
     constructor(private route : ActivatedRoute, private router : Router, 
                 @Inject(PLATFORM_ID) private platformId: Object, public titleSv : Title, 
-                private cfg : AppConfig, private mdserv : MetadataService,
-                private msgsrv : UserMessageService, private authService: AuthService)
+                private cfg : AppConfig, private mdserv : MetadataService)
     {
         this.reqId = this.route.snapshot.paramMap.get('id');
         this.inBrowser = isPlatformBrowser(platformId);
@@ -91,15 +92,6 @@ export class LandingPageComponent implements OnInit {
     useMetadata() : void {
         // set the document title
         this.setDocumentTitle();
-        if (! this.isLoggedIn())
-            this.msgsrv.instruct("To see previously edited data or edit current data, " +
-                                 "click on Edit button.");
-        else if ('modified' in this.md)
-            this.msgsrv.instruct("This record was last updated on "+this.md['modified']+".");
-        else if ('issued' in this.md)
-            this.msgsrv.instruct("This record was last updated on "+this.md['issued']+".");
-        else
-            this.msgsrv.instruct("This record is unmodified")
     }
 
     /**
@@ -119,12 +111,26 @@ export class LandingPageComponent implements OnInit {
      * return the current document title
      */
     getDocumentTitle() : string { return this.titleSv.getTitle(); }
+
+    /**
+     * turn on or off editing controls
+     */
+    setEditMode(onoff : boolean) : void {
+        this.editingOn = onoff;
+    }
+
+    /**
+     * update the metadata.  This is intended for use by the EditControlBar to provide updated 
+     * metadata based on user inputs.
+     */
+    replaceMetadata(mdata : NerdmRes) : void {
+        this.md = mdata;
+    }
     
     /*
      * return true if the client is logged in
      */
     isLoggedIn() : boolean {
-        // return this.authService.loggedIn();
         return false;
     }
 }

@@ -246,7 +246,7 @@ export class WebAuthService extends AuthService {
                     subscriber.complete();
                 },
                 (err) => {
-                    // Don't this is correct --Ray
+                    // Don't think this is correct --Ray
                     this.loginUser();
                     // Unable to successfully complete connection and close
                     // subscriber.error(

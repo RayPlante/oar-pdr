@@ -98,7 +98,7 @@ export class WebCustomizationService extends CustomizationService {
             let obs : Observable<HttpResponse<Object>> = 
                 this.httpcli.get(url, {
                     headers: { "Authorization": "Bearer " + this.token },
-                    observe: 'response',
+                    observe: 'body',
                     responseType: 'json'
                 });
             this._wrapRespObs(obs, subscriber);
@@ -109,37 +109,34 @@ export class WebCustomizationService extends CustomizationService {
                          subscriber : Subscriber<Object>) : void
     {
         obs.subscribe(
-            (resp) => {
-                if (resp.status == 200) {
-                    subscriber.next(resp.body);
+            (jsonbody) => {
+                subscriber.next(jsonbody);
+            },
+            (errresp) => {
+                let msg = "";
+                let err = null;
+                if (errresp.status == 401) {
+                    msg += "Authorization Error (401)";
+                    if (errresp.body['message']) msg += ": " + errresp.body['message'];
+                    err = new AuthCustomizationError(msg, errresp.status);
+                }
+                else if (errresp.status == 404) {
+                    msg += "Record Not Found (404)"
+                    if (errresp.body['message']) msg += ": " + errresp.body['message'];
+                    msg += " (Is the service endpoint correct?)"
+                    err = new NotFoundCustomizationError(msg, errresp.status);
+                }
+                else if (errresp.status < 100 && errresp.error) {
+                    msg = errresp.error.message
+                    err = new ConnectionCustomizationError("Service connection error: "+msg)
                 }
                 else {
-                    let msg = "";
-                    let err = null;
-                    if (resp.status == 401) {
-                        msg += "Authorization Error (401)";
-                        if (resp.body['message']) msg += ": " + resp.body['message'];
-                        err = new AuthCustomizationError(msg, resp.status);
-                    }
-                    else if (resp.status == 404) {
-                        msg += "Record Not Found (404)"
-                        if (resp.body['message']) msg += ": " + resp.body['message'];
-                        msg += " (Is the service endpoint correct?)"
-                        err = new NotFoundCustomizationError(msg, resp.status);
-                    }
-                    else {
-                        msg += "Unexpected Customization Error";
-                        if (resp.status > 0) msg += "(" + resp.status.toString() + ")";
-                        if (resp.body['message']) msg += ": " + resp.body['message'];
-                        err = new SystemCustomizationError(msg, resp.status);
-                    }
-                    subscriber.error(err);
+                    msg += "Unexpected Customization Error";
+                    if (errresp.status > 0) msg += "(" + errresp.status.toString() + ")";
+                    if (errresp.body['message']) msg += ": " + errresp.body['message'];
+                    err = new SystemCustomizationError(msg, errresp.status);
                 }
-                subscriber.complete();
-            },
-            (err) => {
-                subscriber.error(new ConnectionCustomizationError("Service connection error: "+err));
-                subscriber.complete();
+                subscriber.error(err);
             }
         );
     }

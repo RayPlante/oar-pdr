@@ -63,6 +63,9 @@ export abstract class CustomizationService {
  */
 export class WebCustomizationService extends CustomizationService {
 
+    readonly draftapi : string = "api/draft/";
+    readonly saveapi : string = "api/savedrecord/";
+
     /**
      * construct the customization service
      *
@@ -101,7 +104,7 @@ export class WebCustomizationService extends CustomizationService {
         // HttpClient.get() Observable with our own Observable
         //
         return new Observable<Object>(subscriber => {
-            let url = this.endpoint + "draft/" + this.resid;
+            let url = this.endpoint + this.draftapi + this.resid;
             let obs : Observable<Object> = 
                 this.httpcli.get(url, { headers: { "Authorization": "Bearer " + this.token } });
             this._wrapRespObs(obs, subscriber);
@@ -113,32 +116,32 @@ export class WebCustomizationService extends CustomizationService {
             (jsonbody) => {
                 subscriber.next(jsonbody);
             },
-            (errresp) => {   // this will be an HttpErrorResponse
+            (httperr) => {   // this will be an HttpErrorResponse
                 let msg = "";
                 let err = null;
-                if (errresp.status == 401) {
+                if (httperr.status == 401) {
                     msg += "Authorization Error (401)";
                     // TODO: can we get at body of message when an error occurs?
-                    // if (errresp.body['message']) msg += ": " + errresp.body['message'];
-                    err = new AuthCustomizationError(msg, errresp.status);
+                    // if (httperr.body['message']) msg += ": " + httperr.body['message'];
+                    err = new AuthCustomizationError(msg, httperr.status);
                 }
-                else if (errresp.status == 404) {
+                else if (httperr.status == 404) {
                     msg += "Record Not Found (404)"
                     // TODO: can we get at body of message when an error occurs?
-                    // if (errresp.body['message']) msg += ": " + errresp.body['message'];
+                    // if (httperr.body['message']) msg += ": " + httperr.body['message'];
                     msg += " (Is the service endpoint correct?)"
-                    err = new NotFoundCustomizationError(msg, errresp.status);
+                    err = new NotFoundCustomizationError(msg, httperr.status);
                 }
-                else if (errresp.status < 100 && errresp.error) {
-                    msg = errresp.error.message
+                else if (httperr.status < 100 && httperr.error) {
+                    msg = httperr.error.message
                     err = new ConnectionCustomizationError("Service connection error: "+msg)
                 }
                 else {
                     msg += "Unexpected Customization Error";
-                    if (errresp.status > 0) msg += "(" + errresp.status.toString() + ")";
+                    if (httperr.status > 0) msg += "(" + httperr.status.toString() + ")";
                     // TODO: can we get at body of message when an error occurs?
-                    // if (errresp.body['message']) msg += ": " + errresp.body['message'];
-                    err = new SystemCustomizationError(msg, errresp.status);
+                    // if (httperr.body['message']) msg += ": " + httperr.body['message'];
+                    err = new SystemCustomizationError(msg, httperr.status);
                 }
                 subscriber.error(err);
             }
@@ -165,7 +168,7 @@ export class WebCustomizationService extends CustomizationService {
         // HttpClient.patch() Observable with our own Observable
         //
         return new Observable<Object>(subscriber => {
-            let url = this.endpoint + "draft/" + this.resid;
+            let url = this.endpoint + this.draftapi + this.resid;
             let body = JSON.stringify(md);
             let obs : Observable<Object> = 
                 this.httpcli.patch(url, body, { headers: { "Authorization": "Bearer " + this.token } });
@@ -193,7 +196,7 @@ export class WebCustomizationService extends CustomizationService {
         // HttpClient.put() Observable with our own Observable
         //
         return new Observable<Object>(subscriber => {
-            let url = this.endpoint + "savedrecord/" + this.resid;
+            let url = this.endpoint + this.saveapi + this.resid;
             let obs : Observable<Object> = 
                 this.httpcli.put(url, {}, { headers: { "Authorization": "Bearer " + this.token } });
             this._wrapRespObs(obs, subscriber);
@@ -220,7 +223,7 @@ export class WebCustomizationService extends CustomizationService {
         // HttpClient.delete() Observable with our own Observable
         //
         return new Observable<Object>(subscriber => {
-            let url = this.endpoint + "draft/" + this.resid;
+            let url = this.endpoint + this.draftapi + this.resid;
             let obs : Observable<Object> = 
                 this.httpcli.delete(url, { headers: { "Authorization": "Bearer " + this.token } });
             this._wrapRespObs(obs, subscriber);

@@ -260,7 +260,7 @@ export class MetadataUpdateService {
      * retrieve the latest draft of the resource metadata from the server and forward it
      * to the controller for display to the user.  
      */
-    public loadDraft() : void {
+    public loadDraft(onSuccess ?: () => void) : void {
         if (! this.custsvc) {
             console.error("Attempted to update without authorization!  Ignoring update.");
             return;
@@ -271,6 +271,7 @@ export class MetadataUpdateService {
             (res) => {
                 // console.log("Draft data returned from server:\n  ", res)
                 this.mdres.next(res as NerdmRes);
+                if (onSuccess) onSuccess();
             },
             (err) => {
                 // err will be a subtype of CustomizationError

@@ -148,7 +148,14 @@ export class WebCustomizationService extends CustomizationService {
      *
      * @return Observable<Object> -- on success, the subscriber's success (next) function is 
      *                   passed the Object representing the full draft metadata record.  On 
-     *                   failure, error function is called with an instance of a CustomizationError.
+     *                   failure, error function is called with a customized error object, one of 
+     *                   AuthCustomizationError -- if the request is made without being 
+     *                     authenticated or authorized.  This could happen if the user credentials
+     *                     expire during the session. 
+     *                   NotFoundCustomizationError -- if the ID for record that was requested 
+     *                     cannot be found. This should not happen normally.  
+     *                   ConnectionCustomizationError -- if it was not possible to connect to the 
+     *                     customization server, even to get back an error response.  
      */
     public updateMetadata(md : Object) : Observable<Object> {
         // To transform the output with proper error handling, we wrap the
@@ -168,7 +175,14 @@ export class WebCustomizationService extends CustomizationService {
      *
      * @return Observable<Object> -- on success, the subscriber's success (next) function is 
      *                   passed the Object representing the full draft metadata record.  On 
-     *                   failure, error function is called with an instance of a CustomizationError.
+     *                   failure, error function is called with a customized error object, one of 
+     *                   AuthCustomizationError -- if the request is made without being 
+     *                     authenticated or authorized.  This could happen if the user credentials
+     *                     expire during the session. 
+     *                   NotFoundCustomizationError -- if the ID for record that was requested 
+     *                     cannot be found. This should not happen normally.  
+     *                   ConnectionCustomizationError -- if it was not possible to connect to the 
+     *                     customization server, even to get back an error response.  
      */
     public saveDraft() : Observable<Object> {
 
@@ -185,6 +199,17 @@ export class WebCustomizationService extends CustomizationService {
 
     /**
      * discard the changes in the draft, reverting to the original metadata
+     *
+     * @return Observable<Object> -- on success, the subscriber's success (next) function is 
+     *                   passed the Object representing the full draft metadata record.  On 
+     *                   failure, error function is called with a customized error object, one of 
+     *                   AuthCustomizationError -- if the request is made without being 
+     *                     authenticated or authorized.  This could happen if the user credentials
+     *                     expire during the session. 
+     *                   NotFoundCustomizationError -- if the ID for record that was requested 
+     *                     cannot be found. This should not happen normally.  
+     *                   ConnectionCustomizationError -- if it was not possible to connect to the 
+     *                     customization server, even to get back an error response.  
      */
     public discardDraft() : Observable<Object> {
 

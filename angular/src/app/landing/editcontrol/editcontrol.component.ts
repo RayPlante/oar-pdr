@@ -128,12 +128,20 @@ export class EditControlComponent implements OnInit, OnChanges {
      * appear on the landing page, allowing the user to edit various fields.
      */
     public startEditing() : void {
-        // TODO:  should this function be allowed turn off editing if authorization fails (e.g. due
-        //        to a network glitch)?
-        console.log("start editing...");
+        // console.log("start editing...");
+        if (this._custsvc) {
+            // already authorized
+            console.log("start editing... already authorized!");
+            this.editMode = true;
+            return;
+        }
+        
+        console.log("start editing... need authorization...");
         this.authorizeEditing().subscribe(
             (successful) => {
-                this.editMode = successful;
+                this.mdupdsvc.loadDraft(() => {
+                    this.editMode = successful;
+                });
             }
         );
     }

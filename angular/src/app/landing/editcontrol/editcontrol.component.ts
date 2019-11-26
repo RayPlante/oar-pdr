@@ -56,6 +56,11 @@ export class EditControlComponent implements OnInit, OnChanges {
     @Output() mdrecChange = new EventEmitter<NerdmRes>();
 
     /**
+     * the ID that was used to request the landing page
+     */
+    @Input() requestID : string;
+
+    /**
      * the original resource identifier
      */
     private _resid : string = null;
@@ -155,9 +160,12 @@ export class EditControlComponent implements OnInit, OnChanges {
                 (md) => {
                     this.mdupdsvc.forgetUpdateDate();
                     this.mdupdsvc.fieldReset();
+                    this.editMode = false;
                     this.mdrec = md as NerdmRes;
                     this.mdrecChange.emit(md as NerdmRes);
-                    this.editMode = false;
+
+                    // reload this page from the source
+                    // window.location.replace("/od/id/"+this.requestID);
                 },
                 (err) => {
                     if (err.type == "user")
@@ -204,6 +212,9 @@ export class EditControlComponent implements OnInit, OnChanges {
                     this.mdrecChange.emit(md as NerdmRes);
                     this.editMode = false;
                     this.statusbar.showLastUpdate(this.editMode)
+
+                    // reload this page from the source
+                    // window.location.replace("/od/id/"+this.requestID);
                 },
                 (err) => {
                     if (err.type == "user")

@@ -250,7 +250,7 @@ export class WebAuthService extends AuthService {
                         let msg = "Unexpected error during authorization";
                         // TODO: can we get at body of message when an error occurs?
                         // msg += (httperr.body['message']) ? httperr.body['message'] : httperr.statusText;
-                        msg += " (" + httperr.status.toString() + ")"
+                        msg += " (" + httperr.status.toString() + " " + httperr.statusText + ")"
                         subscriber.error(new SystemCustomizationError(msg, httperr.status))
                     }
                 }

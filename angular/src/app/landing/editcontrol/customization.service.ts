@@ -118,12 +118,14 @@ export class WebCustomizationService extends CustomizationService {
                 let err = null;
                 if (errresp.status == 401) {
                     msg += "Authorization Error (401)";
-                    if (errresp.body['message']) msg += ": " + errresp.body['message'];
+                    // TODO: can we get at body of message when an error occurs?
+                    // if (errresp.body['message']) msg += ": " + errresp.body['message'];
                     err = new AuthCustomizationError(msg, errresp.status);
                 }
                 else if (errresp.status == 404) {
                     msg += "Record Not Found (404)"
-                    if (errresp.body['message']) msg += ": " + errresp.body['message'];
+                    // TODO: can we get at body of message when an error occurs?
+                    // if (errresp.body['message']) msg += ": " + errresp.body['message'];
                     msg += " (Is the service endpoint correct?)"
                     err = new NotFoundCustomizationError(msg, errresp.status);
                 }
@@ -134,7 +136,8 @@ export class WebCustomizationService extends CustomizationService {
                 else {
                     msg += "Unexpected Customization Error";
                     if (errresp.status > 0) msg += "(" + errresp.status.toString() + ")";
-                    if (errresp.body['message']) msg += ": " + errresp.body['message'];
+                    // TODO: can we get at body of message when an error occurs?
+                    // if (errresp.body['message']) msg += ": " + errresp.body['message'];
                     err = new SystemCustomizationError(msg, errresp.status);
                 }
                 subscriber.error(err);

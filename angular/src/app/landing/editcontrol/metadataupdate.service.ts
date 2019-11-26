@@ -138,11 +138,11 @@ export class MetadataUpdateService {
                 (err) => {
                     // err will be a subtype of CustomizationError
                     if (err.type == 'user') {
-                        console.error("Failed to save metadata changes: user error:" + err);
+                        console.error("Failed to save metadata changes: user error:" + err.message);
                         this.msgsvc.error(err.message);
                     }
                     else {
-                        console.error("Failed to save metadata changes: server/system error:" + err);
+                        console.error("Failed to save metadata changes: server/system error:" + err.message);
                         this.msgsvc.syserror(err.message,
                                              "There was an problem while updating the "+subsetname+". ");
                     }
@@ -191,11 +191,12 @@ export class MetadataUpdateService {
                     (err) => {
                         // err will be a subtype of CustomizationError
                         if (err.type == 'user') {
-                            console.error("Failed to undo metadata changes: user error:" + err);
+                            console.error("Failed to undo metadata changes: user error:" + err.message);
                             this.msgsvc.error(err.message)
                         }
                         else {
-                            console.error("Failed to undo metadata changes: server/system error:" + err);
+                            console.error("Failed to undo metadata changes: server/system error:" +
+                                          err.message);
                             this.msgsvc.syserror(err.message,
                                      "There was an problem while undoing changes to the "+subsetname+". ")
                         }
@@ -217,11 +218,12 @@ export class MetadataUpdateService {
                     (err) => {
                         // err will be a subtype of CustomizationError
                         if (err.type == 'user') {
-                            console.error("Failed to undo metadata changes: user error:" + err);
+                            console.error("Failed to undo metadata changes: user error:" + err.message);
                             this.msgsvc.error(err.message)
                         }
                         else {
-                            console.error("Failed to undo metadata changes: server/system error:" + err);
+                            console.error("Failed to undo metadata changes: server/system error:" +
+                                          err.message);
                             this.msgsvc.syserror(err.message,
                                      "There was an problem while undoing changes to the "+subsetname+". ")
                         }
@@ -276,11 +278,11 @@ export class MetadataUpdateService {
             (err) => {
                 // err will be a subtype of CustomizationError
                 if (err.type = 'user') {
-                    console.error("Failed to retrieve draft metadata changes: user error:" + err);
+                    console.error("Failed to retrieve draft metadata changes: user error:" + err.message);
                     this.msgsvc.error(err.message)
                 }
                 else {
-                    console.error("Failed to retrieve draft metadata changes: server error:" + err);
+                    console.error("Failed to retrieve draft metadata changes: server error:" + err.message);
                     this.msgsvc.syserror(err.message)
                 }
             }

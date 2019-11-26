@@ -102,14 +102,15 @@ export class EditControlComponent implements OnInit, OnChanges {
         this.edstatsvc._setEditMode(this.editMode);
         this.edstatsvc._setAuthorized(this.isAuthorized());
         this.edstatsvc._setUserID(this.authsvc.userID);
-        this.edstatsvc._watchRemoteStart((ev) => {
-            this.startEditing();
-        });
     }
 
     ngOnInit() {
         this.ngOnChanges();
         this.statusbar.showLastUpdate(this.editMode)
+        this.edstatsvc._watchRemoteStart((start) => {
+            if (start)
+                this.startEditing();
+        });
     }
     ngOnChanges() {
         if (this.mdrec instanceof Object && Object.keys(this.mdrec).length > 0) {

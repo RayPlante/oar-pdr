@@ -86,7 +86,14 @@ export class WebCustomizationService extends CustomizationService {
      *
      * @return Observable<Object> -- on success, the subscriber's success (next) function is 
      *                   passed the Object representing the full draft metadata record.  On 
-     *                   failure, error function is called with an instance of a CustomizationError.
+     *                   failure, error function is called with a customized error object, one of 
+     *                   AuthCustomizationError -- if the request is made without being 
+     *                     authenticated or authorized.  This could happen if the user credentials
+     *                     expire during the session. 
+     *                   NotFoundCustomizationError -- if the ID for record that was requested 
+     *                     cannot be found. This should not happen normally.  
+     *                   ConnectionCustomizationError -- if it was not possible to connect to the 
+     *                     customization server, even to get back an error response.  
      */
     public getDraftMetadata() : Observable<Object> {
 
@@ -95,24 +102,18 @@ export class WebCustomizationService extends CustomizationService {
         //
         return new Observable<Object>(subscriber => {
             let url = this.endpoint + "draft/" + this.resid;
-            let obs : Observable<HttpResponse<Object>> = 
-                this.httpcli.get(url, {
-                    headers: { "Authorization": "Bearer " + this.token },
-                    observe: 'body',
-                    responseType: 'json'
-                });
+            let obs : Observable<Object> = 
+                this.httpcli.get(url, { headers: { "Authorization": "Bearer " + this.token } });
             this._wrapRespObs(obs, subscriber);
         });
     }
 
-    private _wrapRespObs(obs : Observable<HttpResponse<Object>>,
-                         subscriber : Subscriber<Object>) : void
-    {
+    private _wrapRespObs(obs : Observable<Object>, subscriber : Subscriber<Object>) : void {
         obs.subscribe(
             (jsonbody) => {
                 subscriber.next(jsonbody);
             },
-            (errresp) => {
+            (errresp) => {   // this will be an HttpErrorResponse
                 let msg = "";
                 let err = null;
                 if (errresp.status == 401) {
@@ -150,20 +151,14 @@ export class WebCustomizationService extends CustomizationService {
      *                   failure, error function is called with an instance of a CustomizationError.
      */
     public updateMetadata(md : Object) : Observable<Object> {
-        console.log("token", this.token);
-        console.log("md", md);
         // To transform the output with proper error handling, we wrap the
         // HttpClient.patch() Observable with our own Observable
         //
         return new Observable<Object>(subscriber => {
             let url = this.endpoint + "draft/" + this.resid;
             let body = JSON.stringify(md);
-            let obs : Observable<HttpResponse<Object>> = 
-                this.httpcli.patch(url, body, {
-                    headers: { "Authorization": "Bearer " + this.token }, 
-                    observe: 'response',
-                    responseType: 'json'
-                });
+            let obs : Observable<Object> = 
+                this.httpcli.patch(url, body, { headers: { "Authorization": "Bearer " + this.token } });
             this._wrapRespObs(obs, subscriber);
         });
     }
@@ -182,12 +177,8 @@ export class WebCustomizationService extends CustomizationService {
         //
         return new Observable<Object>(subscriber => {
             let url = this.endpoint + "savedrecord/" + this.resid;
-            let obs : Observable<HttpResponse<Object>> = 
-                this.httpcli.put(url, {}, {
-                    headers: { "Authorization": "Bearer " + this.token },
-                    observe: 'response',
-                    responseType: 'json'
-                });
+            let obs : Observable<Object> = 
+                this.httpcli.put(url, {}, { headers: { "Authorization": "Bearer " + this.token } });
             this._wrapRespObs(obs, subscriber);
         });
     }
@@ -202,12 +193,8 @@ export class WebCustomizationService extends CustomizationService {
         //
         return new Observable<Object>(subscriber => {
             let url = this.endpoint + "draft/" + this.resid;
-            let obs : Observable<HttpResponse<Object>> = 
-                this.httpcli.delete(url, {
-                    headers: { "Authorization": "Bearer " + this.token },
-                    observe: 'response',
-                    responseType: 'json'
-                });
+            let obs : Observable<Object> = 
+                this.httpcli.delete(url, { headers: { "Authorization": "Bearer " + this.token } });
             this._wrapRespObs(obs, subscriber);
         });
     }

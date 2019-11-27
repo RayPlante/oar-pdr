@@ -114,6 +114,9 @@ export class WebCustomizationService extends CustomizationService {
     private _wrapRespObs(obs : Observable<Object>, subscriber : Subscriber<Object>) : void {
         obs.subscribe(
             (jsonbody) => {
+                if (!jsonbody || !jsonbody['@id'])
+                    console.warn("Data returned from customization service does not look like a "+
+                                 "NERDm resource: "+JSON.strinify(jsonbody));
                 subscriber.next(jsonbody);
             },
             (httperr) => {   // this will be an HttpErrorResponse

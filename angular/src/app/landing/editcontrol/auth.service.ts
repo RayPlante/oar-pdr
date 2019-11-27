@@ -202,12 +202,13 @@ export class WebAuthService extends AuthService {
                     }
                 },
                 (err) => {
-                    if (err['status'] && err.status == 401) {
+                    if (err['statusCode'] && err.statusCode == 401) {
                         // User needs to log in; redirect the browser to the authentication server
+                        subscriber.complete();
                         this.loginUser();
                     }
-                    
-                    subscriber.error(err);
+                    else 
+                        subscriber.error(err);
                 }
             );
         });
@@ -272,7 +273,7 @@ export class WebAuthService extends AuthService {
     public loginUser() : void {
         let redirectURL = this.endpoint + "saml/login?redirectTo=" + window.location.href + "?editmode=true";
         console.log("Redirecting to "+redirectURL+" to authenticate user");
-        window.location.replace(redirectURL);
+        window.location.assign(redirectURL);
     }
 }
 
@@ -357,7 +358,7 @@ export class MockAuthService extends AuthService {
         let redirectURL = window.location.href + "?editmode=true";
         console.log("Bypassing authentication service; redirecting directly to "+redirectURL);
         if (! this._userid) this._userid = "anon";
-        window.location.replace(redirectURL);
+        window.location.assign(redirectURL);
     }
 }
 

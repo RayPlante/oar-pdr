@@ -164,6 +164,8 @@ export class EditControlComponent implements OnInit, OnChanges {
                     this.mdrec = md as NerdmRes;
                     this.mdrecChange.emit(md as NerdmRes);
 
+                    this.mdupdsvc.showOriginalMetadata();
+
                     // reload this page from the source
                     // window.location.replace("/od/id/"+this.requestID);
                 },

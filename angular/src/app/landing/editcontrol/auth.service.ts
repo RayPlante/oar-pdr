@@ -202,8 +202,12 @@ export class WebAuthService extends AuthService {
                     }
                 },
                 (err) => {
+                    if (err['status'] && err.status == 401) {
+                        // User needs to log in; redirect the browser to the authentication server
+                        this.loginUser();
+                    }
+                    
                     subscriber.error(err);
-                    subscriber.complete();
                 }
             );
         });

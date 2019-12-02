@@ -145,7 +145,8 @@ class MIDASClient(object):
         update the record with the given ID.
         """
         midasrecn = midasid2recnum(midasid);
-        url = "{0}/{1}/{2}".format(self.baseurl, midasrecn, userid)
+        relurl = "{0}/{1}".format(midasrecn, userid)
+        url = self.baseurl + relurl
         hdrs = {}
         if self._authkey:
             hdrs['Authorization'] = "Bearer " + self._authkey
@@ -156,6 +157,7 @@ class MIDASClient(object):
         
         try:
             resp = requests.get(url, headers=hdrs)
+            self.log.info("resp code: "+str(resp.status_code));
             if resp.status_code == 200:
                 if self.log:
                     self.log.info("...authorized")

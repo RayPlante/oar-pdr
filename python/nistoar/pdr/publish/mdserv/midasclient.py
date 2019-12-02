@@ -1,7 +1,7 @@
 """
 a module for utilizing the MIDAS API for interacting with the NIST EDI.
 """
-import os, re, logging
+import os, re, logging, json
 from collections import OrderedDict
 
 import urllib
@@ -154,19 +154,26 @@ class MIDASClient(object):
         msg = "Edit authorization check for user=" + userid + \
               " on record no.=" + midasrecn
         self.log.info(msg+"...")
+        if not hdrs:
+            self.log.warn("No Authorization header included!")
         
         try:
             resp = requests.get(url, headers=hdrs)
             self.log.info("resp code: "+str(resp.status_code));
             if resp.status_code == 200:
-                if self.log:
-                    self.log.info("...authorized")
-                return True
-            elif resp.status_code == 403:
-                if self.log:
-                    self.log.info("...not authorized")
-                return False
+                body = resp.json()
+                if ("editable" in body):
+                    self.log.info("...%sauthorized",
+                                  (not body['editable'] and "not ") or "")
+                    return body['editable'];
+                else:
+                    raise MIDASServerError(relurl, resp.status_code,
+                                           "Unexpected content from MIDAS: "+
+                                           json.dumps(body))
 
+            elif resp.status_code == 403:
+                raise MIDASClientError(relurl, resp.status_code,
+                                       "Bad service authorization key")
             elif resp.status_code >= 500:
                 raise MIDASServerError(relurl, resp.status_code, resp.reason)
             elif resp.status_code == 404:
@@ -179,6 +186,9 @@ class MIDASClient(object):
                                message="Unexpected response from server: {0} {1}"
                                         .format(resp.status_code, resp.reason))
         except requests.RequestException as ex:
+            raise MIDASServerError(midasrecn, cause=ex)
+
+        except ValueError as ex:
             raise MIDASServerError(midasrecn, cause=ex)
 
 

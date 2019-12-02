@@ -1,7 +1,7 @@
 """
 a module for utilizing the MIDAS API for interacting with the NIST EDI.
 """
-import os, re
+import os, re, logging
 from collections import OrderedDict
 
 import urllib
@@ -48,6 +48,8 @@ class MIDASClient(object):
         if not self.baseurl.endswith('/'):
             self.baseurl += '/'
         self._authkey = self.cfg.get('auth_key')
+        if not logger:
+            logger = logging.getLogger("MIDASClient")
         self.log = logger
 
     def _get_json(self, relurl, resp):
@@ -147,18 +149,20 @@ class MIDASClient(object):
         hdrs = {}
         if self._authkey:
             hdrs['Authorization'] = "Bearer " + self._authkey
-                                   
+
+        msg = "Edit authorization check for user=" + userid + \
+              " on record no.=" + midasrecn
+        self.log.info(msg+"...")
+        
         try:
-            msg = "Edit authorization check for user=" + userid + \
-                  " on record no.=" + midasrecn
             resp = requests.get(url, headers=hdrs)
             if resp.status_code == 200:
                 if self.log:
-                    self.log.info(msg + ": authorized")
+                    self.log.info("...authorized")
                 return True
             elif resp.status_code == 403:
                 if self.log:
-                    self.log.info(msg + ": not authorized")
+                    self.log.info("...not authorized")
                 return False
 
             elif resp.status_code >= 500:

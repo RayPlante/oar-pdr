@@ -47,7 +47,7 @@ class MIDASClient(object):
         self.baseurl = baseurl
         if not self.baseurl.endswith('/'):
             self.baseurl += '/'
-        self._authkey = self.cfg.get('auth_key')
+        self._authkey = self.cfg.get('update_auth_key')
         if not logger:
             logger = logging.getLogger("MIDASClient")
         self.log = logger

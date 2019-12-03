@@ -1,10 +1,11 @@
 import { Component, OnInit, ElementRef, PLATFORM_ID, Inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
-import { Title }    from '@angular/platform-browser';
+import { Title } from '@angular/platform-browser';
 
 import { AppConfig } from '../config/config';
 import { MetadataService } from '../nerdm/nerdm.service';
+import { EditStatusService } from './editcontrol/editstatus.service';
 import { NerdmRes } from '../nerdm/nerdm';
 import { IDNotFound } from '../errors/error';
 
@@ -31,9 +32,9 @@ export class LandingPageComponent implements OnInit {
     layoutCompact: boolean = true;
     layoutMode: string = 'horizontal';
     profileMode: string = 'inline';
-    md : NerdmRes = null;        // the NERDm resource metadata
-    reqId : string;              // the ID that was used to request this page
-    inBrowser : boolean = false;
+    md: NerdmRes = null;        // the NERDm resource metadata
+    reqId: string;              // the ID that was used to request this page
+    inBrowser: boolean = false;
 
     /**
      * create the component.
@@ -45,12 +46,13 @@ export class LandingPageComponent implements OnInit {
      * @param res     a CurrentResource object for sharing the metadata and requested 
      *                 ID with child components.
      */
-    constructor(private route : ActivatedRoute,
-                private router : Router, 
+    constructor(private route: ActivatedRoute,
+                private router: Router,
                 @Inject(PLATFORM_ID) private platformId: Object,
-                public titleSv : Title, 
-                private cfg : AppConfig,
-                private mdserv : MetadataService)
+                public titleSv: Title,
+                private cfg: AppConfig,
+                private mdserv: MetadataService,
+                private edstatsvc: EditStatusService)
     {
         this.reqId = this.route.snapshot.paramMap.get('id');
         this.inBrowser = isPlatformBrowser(platformId);
@@ -61,28 +63,45 @@ export class LandingPageComponent implements OnInit {
      * the Angular rendering infrastructure.
      */
     ngOnInit() {
-        console.log("initializing LandingPageComponent around id="+this.reqId);
+        console.log("initializing LandingPageComponent around id=" + this.reqId);
+
+        // retreive the (unedited) metadata
         this.mdserv.getMetadata(this.reqId).subscribe(
             (data) => {
                 // successful metadata request
                 this.md = data;
-                if (! this.md) {
+                if (!this.md) {
                     // id not found; reroute
-                    console.error("No data found for ID="+this.reqId);
-                    this.router.navigateByUrl("/not-found/"+this.reqId, { skipLocationChange: true });
+                    console.error("No data found for ID=" + this.reqId);
+                    this.router.navigateByUrl("/not-found/" + this.reqId, { skipLocationChange: true });
                 }
                 else
                     // proceed with rendering of the component
                     this.useMetadata();
             },
-            (err)  => {
-                console.error("Failed to retrieve metadata: "+err.toString());
+            (err) => {
+                console.error("Failed to retrieve metadata: " + err.toString());
                 if (err instanceof IDNotFound)
-                    this.router.navigateByUrl("not-found/"+this.reqId, { skipLocationChange: true });
-                else 
-                    this.router.navigateByUrl("int-error/"+this.reqId, { skipLocationChange: true });
+                    this.router.navigateByUrl("not-found/" + this.reqId, { skipLocationChange: true });
+                else
+                    this.router.navigateByUrl("int-error/" + this.reqId, { skipLocationChange: true });
             }
         );
+
+        // if editing is enabled, the editing can be triggered via a URL parameter.  This is done
+        // in concert with the authentication process that can involve redirection to an authentication
+        // server; on successful authentication, the server can redirect the browser back to this
+        // landing page with editing turned on.  
+        if (this.edstatsvc.editingEnabled()) {
+            this.route.queryParamMap.subscribe(queryParams => {
+                let param = queryParams.get("editmode")
+                // console.log("editmode url param:", param);
+                if (param) {
+                    console.log("Returning from authentication redirection (editmode="+param+")");
+                    this.edstatsvc.startEditing();
+                }
+            })
+        }
     }
 
     /**
@@ -92,16 +111,16 @@ export class LandingPageComponent implements OnInit {
      * This method will:
      *  * set the page's title (as displayed in the browser title bar).
      */
-    useMetadata() : void {
+    useMetadata(): void {
         // set the document title
         this.setDocumentTitle();
-        
+
     }
 
     /**
      * set the document's title.  
      */
-    setDocumentTitle() : void {
+    setDocumentTitle(): void {
         let title = "PDR: ";
         if (this.md['abbrev']) title += this.md['abbrev'] + " - ";
         if (this.md['title'])
@@ -114,5 +133,5 @@ export class LandingPageComponent implements OnInit {
     /**
      * return the current document title
      */
-    getDocumentTitle() : string { return this.titleSv.getTitle(); }
+    getDocumentTitle(): string { return this.titleSv.getTitle(); }
 }

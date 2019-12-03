@@ -56,6 +56,11 @@ export class EditControlComponent implements OnInit, OnChanges {
     @Output() mdrecChange = new EventEmitter<NerdmRes>();
 
     /**
+     * the ID that was used to request the landing page
+     */
+    @Input() requestID : string;
+
+    /**
      * the original resource identifier
      */
     private _resid : string = null;
@@ -107,6 +112,10 @@ export class EditControlComponent implements OnInit, OnChanges {
     ngOnInit() {
         this.ngOnChanges();
         this.statusbar.showLastUpdate(this.editMode)
+        this.edstatsvc._watchRemoteStart((start) => {
+            if (start)
+                this.startEditing(true);
+        });
     }
     ngOnChanges() {
         if (this.mdrec instanceof Object && Object.keys(this.mdrec).length > 0) {
@@ -122,13 +131,26 @@ export class EditControlComponent implements OnInit, OnChanges {
     /**
      * start (or resume) editing of the resource metadata.  Calling this will cause editing widgets to 
      * appear on the landing page, allowing the user to edit various fields.
+     * 
+     * @param nologin   if false (default) and the user is not logged in, the browser will be redirected 
+     *                  to the authentication service.  If true, redirection will not occur; instead, 
+     *                  the app will remain with editing turned off if the user is not logged in.  
      */
-    public startEditing() : void {
-        // TODO:  should this function be allowed turn off editing if authorization fails (e.g. due
-        //        to a network glitch)?
-        this.authorizeEditing().subscribe(
+    public startEditing(nologin : boolean = false) : void {
+        // console.log("start editing...");
+        if (this._custsvc) {
+            // already authorized
+            console.log("start editing... already authorized!");
+            this.editMode = true;
+            return;
+        }
+        
+        console.log("start editing... need authorization...");
+        this.authorizeEditing(nologin).subscribe(
             (successful) => {
-                this.editMode = successful;
+                this.mdupdsvc.loadDraft(() => {
+                    this.editMode = successful;
+                });
             }
         );
     }
@@ -141,9 +163,18 @@ export class EditControlComponent implements OnInit, OnChanges {
             this._custsvc.discardDraft().subscribe(
                 (md) => {
                     this.mdupdsvc.forgetUpdateDate();
-                    this.mdrec = md as NerdmRes;
-                    this.mdrecChange.emit(md as NerdmRes);
+                    this.mdupdsvc.fieldReset();
                     this.editMode = false;
+                    if (md && md['@id']) {
+                        // assume a NerdmRes object was returned
+                        this.mdrec = md as NerdmRes;
+                        this.mdrecChange.emit(md as NerdmRes);
+                    }
+
+                    this.mdupdsvc.showOriginalMetadata();
+
+                    // reload this page from the source
+                    // window.location.replace("/od/id/"+this.requestID);
                 },
                 (err) => {
                     if (err.type == "user")
@@ -164,7 +195,7 @@ export class EditControlComponent implements OnInit, OnChanges {
      * the data to its previous state.
      */
     public confirmDiscardEdits() : void {
-        this.confirmDialogSvc.confirm('Edited data will be lost',  'Do you want to erase changes?')
+        this.confirmDialogSvc.confirm('Edited data will be lost',  'Do you want to erase changes?', true)
             .then( (confirmed) => {
                 if (confirmed)
                     this.discardEdits()
@@ -185,10 +216,14 @@ export class EditControlComponent implements OnInit, OnChanges {
             this._custsvc.saveDraft().subscribe( 
                 (md) => { 
                     this.mdupdsvc.forgetUpdateDate();
+                    this.mdupdsvc.fieldReset();
                     this.mdrec = md as NerdmRes;
                     this.mdrecChange.emit(md as NerdmRes);
                     this.editMode = false;
                     this.statusbar.showLastUpdate(this.editMode)
+
+                    // reload this page from the source
+                    // window.location.replace("/od/id/"+this.requestID);
                 },
                 (err) => {
                     if (err.type == "user")
@@ -257,11 +292,14 @@ export class EditControlComponent implements OnInit, OnChanges {
      * and, thus, this function would not return to its caller.  The authorization server should 
      * return the browser to the landing page which should trigger calling this function again.  
      * 
+     * @param nologin   if false (default) and the user is not logged in, the browser will be redirected 
+     *                  to the authentication service.  If true, redirection will not occur; instead, 
+     *                  false is returned if the user is not logged in.  
      * @return Observable<boolean>   this will resolve to true if the application is authorized; 
      *                               false, if either the user could not authenticate or is otherwise 
      *                               not allowed to edit this record.  
      */
-    public authorizeEditing() : Observable<boolean> {
+    public authorizeEditing(nologin : boolean = false) : Observable<boolean> {
         if (this._custsvc) return of<boolean>(true);   // We're already authorized
         if (! this.resID) {
             console.warn("Warning: Initial metadata record not established yet in EditControlComponent");
@@ -272,11 +310,16 @@ export class EditControlComponent implements OnInit, OnChanges {
             console.log("obtaining editing authorization");
             this.statusbar.showMessage("Authenticating/authorizing access...", true)
             
-            this.authsvc.authorizeEditing(this.resID).subscribe(  // this might cause redirect (see above)
+            this.authsvc.authorizeEditing(this.resID, nologin).subscribe(  // might cause redirect (see above)
                 (custsvc) => {
                     this._custsvc = custsvc;    // could be null, indicating user is not authorized.
                     this.mdupdsvc._setCustomizationService(custsvc);
-                    if (! custsvc) {
+                    if (! this.authsvc.userID) {
+                        console.log("authentication failed");
+                        this.msgsvc.error("User log in cancelled or failed.  To edit, please log in " +
+                                          'by clicking the "Edit" button above.')
+                    }
+                    else if (! custsvc) {
                         console.log("authorization denied for user "+this.authsvc.userID);
                         this.msgsvc.error("Sorry, you are not authorized to edit this submission.")
                     }

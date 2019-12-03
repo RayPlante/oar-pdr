@@ -6,14 +6,17 @@ import { EditStatusComponent } from './editstatus.component';
 import { AuthService, createAuthService } from './auth.service';
 import { ConfirmationDialogModule } from '../../shared/confirmation-dialog/confirmation-dialog.module';
 import { FrameModule } from '../../frame/frame.module';
+import { ButtonModule } from 'primeng/primeng';
 import { AppConfig } from '../../config/config';
+import { HttpClient } from '@angular/common/http';
 
 @NgModule({
     declarations: [ EditControlComponent, EditStatusComponent ],
-    imports: [ CommonModule, ConfirmationDialogModule, FrameModule ],
+    imports: [ CommonModule, ConfirmationDialogModule, FrameModule, ButtonModule ],
     exports: [ EditControlComponent, EditStatusComponent ],
     providers: [
-        { provide: AuthService, useFactory: createAuthService, deps: [ AppConfig ] }
+        HttpClient,
+        { provide: AuthService, useFactory: createAuthService, deps: [ AppConfig, HttpClient ] }
     ]
 })
 export class EditControlModule { }

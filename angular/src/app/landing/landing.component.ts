@@ -157,10 +157,8 @@ export class LandingComponent implements OnInit, OnChanges {
         private ngbModal: NgbModal,
         private modalService: ModalService,
         private confirmationDialogService: ConfirmationDialogService,
-        // private errorHandlingService: ErrorHandlingService,     // deprecated?
         private notificationService: NotificationService)
     {
-        // this.searchValue = this.route.snapshot.paramMap.get('id');
         this.editEnabled = cfg.get("editEnabled", false) as boolean;
     }
 
@@ -189,7 +187,6 @@ export class LandingComponent implements OnInit, OnChanges {
             this.doiUrl = "https://doi.org/" + this.record['doi'].split(':')[1];
 
         this.assessNewer();
-        this.updateMenu();
 
         if (this.files.length != 0)
             this.files = <TreeNode[]>this.files[0].data;
@@ -216,92 +213,9 @@ export class LandingComponent implements OnInit, OnChanges {
         return "Data Resource";
     }
 
-    /**
-     * Housekeeping after view init
-     */
-    ngAfterViewInit() {
-        this.useFragment();
-        if (this.record != null && this.inBrowser) {
-            window.history.replaceState({}, '', '/od/id/' + this.requestId);
-        }
-    }
-
-    // deprecated?
-    // This spinner appears within the EditControlComponenet only when editing is enabled
-    // 
-    // turnSpinnerOff() {
-    //     setTimeout(() => { this.sharedService.setContentReady(true); }, 0)
-    // }
-
     viewmetadata() {
         this.metadata = true; 
         this.similarResources = false;
-    }
-
-    createMenuItem(label: string, icon: string, command: any, url: string) {
-        let testItem: any = {};
-        testItem.label = label;
-        testItem.icon = icon;
-        if (command !== '')
-            testItem.command = command;
-        if (url !== '')
-            testItem.url = url;
-        testItem.target = "_blank";
-        return testItem;
-    }
-
-    /**
-     * Update menu on landing page
-     */
-    updateMenu() {
-        let mdapi = this.cfg.get("locations.mdService", "/unconfigured");
-        this.serviceApi = mdapi + "records?@id=" + this.record['@id'];
-        if (!_.includes(mdapi, "/rmm/"))
-            this.serviceApi = mdapi + this.record['ediid'];
-        this.distdownload = this.cfg.get("distService", "/od/ds/") + "zip?id=" + this.record['@id'];
-
-        var itemsMenu: MenuItem[] = [];
-        var metadata = this.createMenuItem("Export JSON", "faa faa-file-o",
-                                           "",   /* (event) => { this.turnSpinnerOff(); }, */
-                                           this.serviceApi);
-        let authlist = "";
-
-        if (this.record['authors']) {
-            for (let auth of this.record['authors']) authlist = authlist + auth.familyName + ",";
-        }
-
-        var resourcesByAuthor = this.createMenuItem('Resources by Authors', "faa faa-external-link", "",
-            this.cfg.get("locations.pdrSearch", "/sdp/") + "/#/search?q=authors.familyName=" + authlist + "&key=&queryAdvSearch=yes");
-        var similarRes = this.createMenuItem("Similar Resources", "faa faa-external-link", "",
-            this.cfg.get("locations.pdrSearch", "/sdp/") + "/#/search?q=" + this.record['keyword'] + "&key=&queryAdvSearch=yes");
-        var license = this.createMenuItem("Fair Use Statement", "faa faa-external-link", (event) => { this.gaService.gaTrackEvent('outbound', event, this.record['title']), this.record['license'] }, this.record['license']);
-        var citation = this.createMenuItem('Citation', "faa faa-angle-double-right",
-            (event) => { this.getCitation(); this.showDialog(); }, '');
-        var metaItem = this.createMenuItem("View Metadata", "faa faa-bars",
-            (event) => { this.goToSelection(true, false, 'metadata'); this.gaService.gaTrackPageview('/od/id/' + this.requestId + '#metadata', this.record['title']) }, '');
-        itemsMenu.push(metaItem);
-        itemsMenu.push(metadata);
-
-        var descItem = this.createMenuItem("Description", "faa faa-arrow-circle-right",
-            (event) => { this.goToSelection(false, false, 'description'); }, "");
-
-        var refItem = this.createMenuItem("References", "faa faa-arrow-circle-right ",
-            (event) => { this.goToSelection(false, false, 'reference'); }, '');
-
-        var filesItem = this.createMenuItem("Data Access", "faa faa-arrow-circle-right",
-            (event) => { this.goToSelection(false, false, 'dataAccess'); }, '');
-
-        var itemsMenu2: MenuItem[] = [];
-        itemsMenu2.push(descItem);
-        if (this.files.length !== 0 || (this.record['landingPage'] && this.record['landingPage'].indexOf('/od/id') === -1))
-            itemsMenu2.push(filesItem);
-        if (this.record['references'])
-            itemsMenu2.push(refItem);
-
-        this.rightmenu = [{ label: 'Go To ..', items: itemsMenu2 },
-        { label: 'Record Details', items: itemsMenu },
-        { label: 'Use', items: [citation, license] },
-        { label: 'Find', items: [similarRes, resourcesByAuthor] }];
     }
 
     /**
@@ -342,31 +256,6 @@ export class LandingComponent implements OnInit, OnChanges {
             this.citeString += ", " + doistring;
         }
         this.citeString += " (Accessed " + date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + ")";
-    }
-
-
-    goToSelection(isMetadata: boolean, isSimilarResources: boolean, sectionId: string) {
-        this.metadata = isMetadata; this.similarResources = isSimilarResources;
-        // this.turnSpinnerOff();
-        this.router.navigate(['/od/id/', this.requestId], { fragment: sectionId });
-        this.useFragment();
-    }
-
-    useFragment() {
-        this.router.events.subscribe(s => {
-            if (s instanceof NavigationEnd) {
-                const tree = this.router.parseUrl(this.router.url);
-                if (tree.fragment) {
-                    const element = document.querySelector("#" + tree.fragment);
-                    if (element) {
-                        //element.scrollIntoView(); 
-                        setTimeout(() => {
-                            element.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
-                        }, 1);
-                    }
-                }
-            }
-        });
     }
 
     recordLoaded() {
@@ -629,26 +518,5 @@ export class LandingComponent implements OnInit, OnChanges {
         window.open(url, '_blank');
     }
 
-    // deprecated?
-    // 
-    // /*
-    //  *  Set error message for display
-    //  *  err: standard error. err.message will be used in email body if user want to send us email.
-    //  *  message: The message to display on the screen.
-    //  *  action: User action that caused the error.
-    //  */
-    // setErrorForDisplay(err: any, message: string, action: string) {
-    //     this.errorHandlingService.setErrMessage({ message: message, messageDetail: err.message, action: action, display: true });
-    //     console.log(err);
-    //     this.errorMsg = message;
-    //     this.errorMsgDetail = err.message;
-    //     this.displayError = true;
-    //     console.log(this.errorMsg);
-    // }
-
-    // This can be uncommented for debugging purposes
-    //
-    // @ViewChild(EditControlComponent)
-    // ecc : EditControlComponent;
 }
 

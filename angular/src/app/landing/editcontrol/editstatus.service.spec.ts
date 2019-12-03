@@ -11,7 +11,7 @@ describe('EditStatusService', () => {
 
     beforeEach(() => {
         cfgdata = JSON.parse(JSON.stringify(config));
-        cfgdata['enableEdit'] = true;
+        cfgdata['editEnabled'] = true;
         svc = new EditStatusService(new AppConfig(cfgdata));
     });
 

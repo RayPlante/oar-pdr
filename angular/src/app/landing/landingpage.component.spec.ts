@@ -10,6 +10,8 @@ import { ToastrModule } from 'ngx-toastr';
 
 import { LandingPageModule } from './landingpage.module';
 import { LandingPageComponent } from './landingpage.component';
+import { ToolsModule } from './tools/tools.module';
+import { CitationModule } from './citation/citation.module';
 import { AngularEnvironmentConfigService } from '../config/config.service';
 import { AppConfig } from '../config/config'
 import { MetadataTransfer, NerdmRes } from '../nerdm/nerdm'
@@ -68,7 +70,7 @@ describe('LandingPageComponent', () => {
     let setupComponent = function() {
         TestBed.configureTestingModule({
             imports: [
-                HttpClientModule, BrowserAnimationsModule, LandingPageModule,
+                HttpClientModule, BrowserAnimationsModule, LandingPageModule, ToolsModule, CitationModule,
                 RouterTestingModule.withRoutes(routes),
                 ToastrModule.forRoot({
                     toastClass: 'toast toast-bootstrap-compatibility-fix'

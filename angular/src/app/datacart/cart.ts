@@ -119,6 +119,20 @@ export class DataCart {
     }
 
     /**
+     * count and return the total number of files in this cart
+     */
+    public countFiles() : number {
+        return this._countIn(this.contents)['fileCount'];
+    }
+
+    /**
+     * count and return the total number of files currently marked as downloaded
+     */
+    public countFilesDownloaded() : number {
+        return this._countIn(this.contents)['downloadedCount'];
+    }
+
+    /**
      * mark the file or list of files as having been downloaded.
      * @param itemIds     an array of IDs for files that have been downloaded.  IDs for files that
      *                    are not in this cart will be ignored.
@@ -200,6 +214,7 @@ export class DataCart {
         
         if (! file.data)
             throw new Error("Unable to add file to cart: wrong type (not a TreeNode)");
+        file = JSON.parse(JSON.stringify(file));
         this._addFileToColl(file, this.contents, "", file.data['cartId']);
 
         this.save();
@@ -218,8 +233,12 @@ export class DataCart {
      * @param coll      the array of nodes representing members in a collection
      * @param parentid  the ID for the collection node that contains coll
      * @param targetid  the id of file relative to parentid; i.e. with the parentid prefix removed
+     * @return TreeNode  the element added to coll 
      */
-    private _addFileToColl(file: TreeNode, coll: TreeNode[], parentid: string, targetid: string) : boolean {
+    private _addFileToColl(file: TreeNode, coll: TreeNode[], parentid: string, targetid: string) : TreeNode {
+        if (file.children && (! file.data['fileCount'] || ! file.data['downloadedCount']))
+            Object.assign(file.data, this._countIn(file.children));
+
         let nextsplit: string[] = this._splitRootFromPath(targetid);
         let lookfor: string = parentid;
         if (parentid.length > 0) lookfor += "/";
@@ -236,22 +255,27 @@ export class DataCart {
                         console.warn("Collection added to cart is clobbering previously added file");
                     file = this._createTreeFor(file, lookfor);
                     coll[i] = file;
-                    return true;
+                    return file;
                 }
-                return this._addFileToColl(file, coll[i].children, lookfor, nextsplit[1]);
+
+                let out = this._addFileToColl(file, coll[i].children, lookfor, nextsplit[1]);
+                if (out)
+                    Object.assign(coll[i].data, this._countIn(coll[i].children));  // update the cached counts
+                return out
             }
         }
 
         // need to add a new parent collection
         file = this._createTreeFor(file, parentid);
         coll.push(file);
-        return true;
+        return file;
     }
 
-    private _createTreeFor(file: TreeNode, parentid) {
-        if (! parentid.endsWith("/")) parentid += "/";
+    private _createTreeFor(file: TreeNode, parentid: string) {
+        if (parentid.length > 0 && ! parentid.endsWith("/")) parentid += "/";
         if (! file.data['cartId'].startsWith(parentid)) {
-            console.error("Problem adding file to cart: file-parent id mismatch")
+            console.error("Problem adding file to cart: file id does not start with parent: "
+                          +file.data['cartId']+" vs. "+parentid)
             return file;
         }
 
@@ -263,14 +287,37 @@ export class DataCart {
             parentid += "/" + need.pop();
             file = {
                 data: {
-                    cartId: parentid 
+                    cartId: parentid,
+                    fileCount: (file.data['fileCount']) ? file.data['fileCount'] : 1,
+                    downloadedCount: (file.data['downloadStatus'] == "downloaded")
+                        ?  1 : ((file.data['downloadedCount']) ? file.data['downloadedCount'] : 0)
                 },
                 children: [ file ]
             }
         }
         return file;
     }
-    
+
+    _countIn(coll: TreeNode[]) {
+        let out = { fileCount: 0, downloadedCount: 0 };
+        for(let node of coll) {
+            if (! node.children) {
+                // this is a leaf (file) node
+                out['fileCount']++;
+                if (node.data['downloadStatus'] == "downloaded")
+                    out['downloadedCount']++;
+                continue;
+            }
+
+            // this is a collection (branch) node; make sure we have a rolled up count for its contents
+            if (! node.data['fileCount'] || ! node.data['downloadedCount'])
+                Object.assign(node.data, this._countIn(node.children));
+
+            out['fileCount'] += node.data['fileCount'];
+            out['downloadedCount'] += node.data['downloadedCount'];
+        }
+        return out;
+    }
 
     /**
      * register to get alerts when files have been downloaded

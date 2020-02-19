@@ -3,9 +3,11 @@ import { TreeNode } from 'primeng/api';
 import { DataCart, stringifyCart, parseCart, findFileIn } from './cart';
 import { testdata } from '../../environments/environment';
 
-let sample: TreeNode[] = [{ data: { cartId: "gurn" }, children: [] }];
+let emptycoll: TreeNode[] = [{ data: { cartId: "gurn" }, children: [] }];
 
 describe('functions', () => {
+    let sample = emptycoll;
+
     it("stringify-parse", () => {
         expect(stringifyCart(sample)).toEqual('[{"data":{"cartId":"gurn"},"children":[]}]');
         expect(parseCart(stringifyCart(sample))).toEqual(sample);
@@ -33,6 +35,12 @@ describe('functions', () => {
 });
 
 describe('DataCart', () => {
+
+    let sample: TreeNode[] = null;
+
+    beforeEach(() => {
+        sample = <TreeNode[]>JSON.parse(JSON.stringify(emptycoll));
+    });
 
     afterEach(() => {
         localStorage.clear();
@@ -121,17 +129,20 @@ describe('DataCart', () => {
     it('addFile()', () => {
         let dc = DataCart.createCart("cart");
         dc.addFile(sample[0]);
-        expect(dc.contents).toEqual(sample)
-        expect(localStorage.getItem("cart")).toEqual('[{"data":{"cartId":"gurn"},"children":[]}]');
+        expect(dc.contents).toEqual([{"data":{"cartId":"gurn","fileCount":0,"downloadedCount":0},"children":[]}])
+        expect(localStorage.getItem("cart")).toEqual('[{"data":{"cartId":"gurn","fileCount":0,"downloadedCount":0},"children":[]}]');
 
         dc.addFile({data: {cartId: "gurn/goober"}});
-        expect(localStorage.getItem("cart")).toEqual('[{"data":{"cartId":"gurn"},"children":[{"data":{"cartId":"gurn/goober"}}]}]');
+        expect(localStorage.getItem("cart")).toEqual('[{"data":{"cartId":"gurn","fileCount":1,"downloadedCount":0},"children":[{"data":{"cartId":"gurn/goober"}}]}]');
 
         dc.addFile({data: {cartId: "gary"}, children:[]});
-        expect(localStorage.getItem("cart")).toEqual('[{"data":{"cartId":"gurn"},"children":[{"data":{"cartId":"gurn/goober"}}]},{"data":{"cartId":"gary"},"children":[]}]');
+        expect(localStorage.getItem("cart")).toEqual('[{"data":{"cartId":"gurn","fileCount":1,"downloadedCount":0},"children":[{"data":{"cartId":"gurn/goober"}}]},{"data":{"cartId":"gary","fileCount":0,"downloadedCount":0},"children":[]}]');
 
         dc.addFile({data: {cartId: "gary/foo/bar", count: 1}});
-        expect(localStorage.getItem("cart")).toEqual('[{"data":{"cartId":"gurn"},"children":[{"data":{"cartId":"gurn/goober"}}]},{"data":{"cartId":"gary"},"children":[{"data":{"cartId":"gary/foo"},"children":[{"data":{"cartId":"gary/foo/bar","count":1}}]}]}]');
+        expect(localStorage.getItem("cart")).toEqual('[{"data":{"cartId":"gurn","fileCount":1,"downloadedCount":0},"children":[{"data":{"cartId":"gurn/goober"}}]},{"data":{"cartId":"gary","fileCount":1,"downloadedCount":0},"children":[{"data":{"cartId":"gary/foo","fileCount":1,"downloadedCount":0},"children":[{"data":{"cartId":"gary/foo/bar","count":1}}]}]}]');
+
+        dc.addFile({data: {cartId: "gary/foo/bum", count: 2}});
+        expect(localStorage.getItem("cart")).toEqual('[{"data":{"cartId":"gurn","fileCount":1,"downloadedCount":0},"children":[{"data":{"cartId":"gurn/goober"}}]},{"data":{"cartId":"gary","fileCount":2,"downloadedCount":0},"children":[{"data":{"cartId":"gary/foo","fileCount":2,"downloadedCount":0},"children":[{"data":{"cartId":"gary/foo/bar","count":1}},{"data":{"cartId":"gary/foo/bum","count":2}}]}]}]');
     });
 
     it('findFile()', () => {
@@ -189,4 +200,51 @@ describe('DataCart', () => {
         expect(findFileIn("gurn/gary", mine).data['downloadStatus']).not.toBeDefined();
         expect(findFileIn("gary/foo/bar", mine)).toBeNull();
     });
+
+    it('_countIn()', () => {
+        let dc = new DataCart("cart", sample);
+        dc.save();
+        expect(dc._countIn(sample)).toEqual({fileCount: 0, downloadedCount: 0});
+
+        dc.addFile({data: {cartId: "gurn/goober", downloadStatus: "downloaded"}});
+        expect(dc._countIn(dc.contents[0].children)).toEqual({fileCount: 1, downloadedCount: 1});
+        expect(dc._countIn(dc.contents)).toEqual({fileCount: 1, downloadedCount: 1});
+       
+        dc.addFile({data: {cartId: "gary"}, children:[]});
+        dc.addFile({data: {cartId: "gary/foo/bar", count: 1, downloadStatus: "downloaded"}});
+        dc.addFile({data: {cartId: "gary/foo/bum", count: 2}});
+        expect(dc._countIn(dc.contents[0].children)).toEqual({fileCount: 1, downloadedCount: 1});
+        expect(dc._countIn(dc.contents[1].children)).toEqual({fileCount: 2, downloadedCount: 1});
+        expect(dc._countIn(dc.contents[1].children[0].children)).toEqual({fileCount: 2, downloadedCount: 1});
+        expect(dc._countIn(dc.contents)).toEqual({fileCount: 3, downloadedCount: 2});
+    });
+
+    it('countFiles()', () => {
+        let dc = new DataCart("cart", sample);
+        dc.save();
+        expect(dc.countFiles()).toEqual(0);
+
+        dc.addFile({data: {cartId: "gurn/goober", downloadStatus: "downloaded"}});
+        expect(dc.countFiles()).toEqual(1);
+       
+        dc.addFile({data: {cartId: "gary"}, children:[]});
+        dc.addFile({data: {cartId: "gary/foo/bar", count: 1, downloadStatus: "downloaded"}});
+        dc.addFile({data: {cartId: "gary/foo/bum", count: 2}});
+        expect(dc.countFiles()).toEqual(3);
+    });
+
+    it('countFilesDownloaded()', () => {
+        let dc = new DataCart("cart", sample);
+        dc.save();
+        expect(dc.countFilesDownloaded()).toEqual(0);
+
+        dc.addFile({data: {cartId: "gurn/goober", downloadStatus: "downloaded"}});
+        expect(dc.countFilesDownloaded()).toEqual(1);
+       
+        dc.addFile({data: {cartId: "gary"}, children:[]});
+        dc.addFile({data: {cartId: "gary/foo/bar", count: 1, downloadStatus: "downloaded"}});
+        dc.addFile({data: {cartId: "gary/foo/bum", count: 2}});
+        expect(dc.countFilesDownloaded()).toEqual(2);
+    });
 })
+

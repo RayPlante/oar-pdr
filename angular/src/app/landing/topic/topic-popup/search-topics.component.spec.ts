@@ -12,7 +12,7 @@ import { AngularEnvironmentConfigService } from '../../../config/config.service'
 import { TransferState } from '@angular/platform-browser';
 import { ToastrModule } from 'ngx-toastr';
 
-fdescribe('SearchTopicsComponent', () => {
+describe('SearchTopicsComponent', () => {
     let component: SearchTopicsComponent;
     let fixture: ComponentFixture<SearchTopicsComponent>;
     let tempTopics: any;

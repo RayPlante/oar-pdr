@@ -25,10 +25,6 @@ class DOIMintingClient(object):
         self.naan = self._cfg.get('minting_naan')
         if not self.naan:
             raise ConfigurationException("Missing required config param: minting_naan")
-        if isinstance(self.naan, (float, int)):
-            self.log.warn("DOIMintingClient: Numeric 'minting_naan' specified in configuration; "+
-                          "converting to string")
-            self.naan = str(self.naan)
         dccfg = self._cfg.get('datacite_api')
         if dccfg and not dccfg.get('service_endpoint'):
             raise ConfigurationException("Missing required datacite config param: service_endpoint")
@@ -45,6 +41,10 @@ class DOIMintingClient(object):
         if not log:
             log = logging.getLogger("OOIClient")
         self.log = log
+        if isinstance(self.naan, (float, int)):
+            self.log.warn("DOIMintingClient: Numeric 'minting_naan' specified in configuration; "+
+                          "converting to string")
+            self.naan = str(self.naan)
 
         base = self._cfg.get('data_dir')
         missing = [name for name in 

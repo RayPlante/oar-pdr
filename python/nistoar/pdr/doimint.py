@@ -288,7 +288,7 @@ class DOIMintingClient(object):
                        (rec.get('event') == 'publish' and "Publishing") or "Submitting", rec['doi'])
 
         doi = self.dccli.lookup(rec['doi'], relax=True)
-        if doi.is_readonly():
+        if doi.is_readonly:
             self.log.error("Staged record has read-only DOI: "+doi.doi)
             if self.dccli.prefs:
                 self.log.info("%s!=%s (?)", doi.prefix, self.dccli.prefs[0])

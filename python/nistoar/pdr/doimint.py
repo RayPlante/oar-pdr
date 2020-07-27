@@ -213,7 +213,7 @@ class DOIMintingClient(object):
                     self.log.error("%s: %s", name, ex.errdata.explain())
                 else:
                     self.log.error("%s: invalid DOI request: %s", name, str(ex))
-                self.log.info("%s is %san one of the allowed prefixes: %s",
+                self.log.info("%s is %sone of the allowed prefixes: %s",
                               rec.get('doi','??').split('/')[0],
                               (self.dccli.supports_prefix(rec.get('doi','??').split('/')[0]) and '') or "not ",
                               self.dccli.prefs)
@@ -288,6 +288,11 @@ class DOIMintingClient(object):
                        (rec.get('event') == 'publish' and "Publishing") or "Submitting", rec['doi'])
 
         doi = self.dccli.lookup(rec['doi'], relax=True)
+        if doi.is_readonly():
+            self.log.error("Staged record has read-only DOI: "+doi.doi)
+            if self.dccli.prefs:
+                self.log.info("%s!=%s (?)", doi.prefix, self.dccli.prefs[0])
+            raise DOIClientException("%s: Attempted to stage read-only DOI", doi.doi)
         if doi.exists:
             if rec.get('event') == 'publish' and doi.state != dc.STATE_FINDABLE:
                 self.log.debug("doi:%s: publishing currently %s record", rec['doi'], doi.state)

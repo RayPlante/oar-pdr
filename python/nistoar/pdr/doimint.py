@@ -293,6 +293,9 @@ class DOIMintingClient(object):
             if self.dccli.prefs:
                 self.log.info("%s!=%s (?)", doi.prefix, self.dccli.prefs[0])
             raise DOIClientException("%s: Attempted to stage read-only DOI", doi.doi)
+        else:
+            self.log.info("Staged record A-OK: "+doi.doi)
+                
         if doi.exists:
             if rec.get('event') == 'publish' and doi.state != dc.STATE_FINDABLE:
                 self.log.debug("doi:%s: publishing currently %s record", rec['doi'], doi.state)

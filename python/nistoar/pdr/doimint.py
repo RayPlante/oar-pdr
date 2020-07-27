@@ -225,7 +225,7 @@ class DOIMintingClient(object):
                               name, str(ex))
                 shutil.move(recfile, self._stagedir)
                 raise
-            except DOICommunicationError as ex:
+            except dc.DOICommunicationError as ex:
                 # network's fault; try again later
                 self.log.warn("%s: unexpected comm error: %s (will try again later)",
                               name, str(ex))
@@ -292,7 +292,7 @@ class DOIMintingClient(object):
             self.log.error("Staged record has read-only DOI: "+doi.doi)
             if self.dccli.prefs:
                 self.log.info("%s!=%s (?)", doi.prefix, self.dccli.prefs[0])
-            raise DOIClientException("%s: Attempted to stage read-only DOI", doi.doi)
+            raise dc.DOIClientException("%s: Attempted to stage read-only DOI", doi.doi)
         else:
             self.log.info("Staged record A-OK: "+doi.doi)
                 

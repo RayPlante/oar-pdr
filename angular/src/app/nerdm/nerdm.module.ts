@@ -42,3 +42,5 @@ export function getMetadataEndpoint(platid : Object, config : AppConfig) : strin
 })
 export class NerdmModule { }
 
+export { NerdmComp, NerdmRes, NERDResource, formatBytes } from './nerdm';
+export { MetadataTransfer }

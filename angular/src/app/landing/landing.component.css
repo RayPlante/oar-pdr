@@ -1,3 +1,7 @@
+/**
+ * This stylesheet contains common styles used across many components that 
+ * make up the landing page display.  
+ */
 .style-horizontal {
   border: 0;
   height: 1px;
@@ -13,12 +17,6 @@
 .white
 {
   color:#ffffff;
-}
-
-.title
-{
-  /* color:#1471AE; */
-  font-size: 20px;
 }
 
 .recordType{

@@ -37,6 +37,6 @@ module.exports = function (config) {
         base: 'Chrome'
       }
     },
-    singleRun: true
+    singleRun: false
   });
 };

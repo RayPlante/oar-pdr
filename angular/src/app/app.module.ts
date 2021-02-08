@@ -5,7 +5,6 @@ import {
 } from '@angular/core';
 
 import { SearchResolve } from './landing/search-service.resolve';
-import { AppShellRenderDirective } from './directives/app-shell-render.directive';
 import { enableProdMode } from '@angular/core';
 import { ComboBoxPipe } from './shared/combobox/combo-box.pipe';
 import { ErrorHandler } from '@angular/core';
@@ -33,27 +32,24 @@ import { UserMessageService } from './frame/usermessage.service';
 import { ConfigModule } from './config/config.module';
 import { AppRoutingModule } from './app-routing.module';
 import { DataTableModule } from 'primeng/primeng';
-import { ContenteditableModel } from './directives/contenteditable-model.directive';
 import { LandingModule } from './landing/landing.module';
 
 import { ErrorComponent, UserErrorComponent } from './landing/error.component';
 import { DatacartComponent } from './datacart/datacart.component';
-import { ModalComponent } from './directives';
 import { ComboBoxComponent } from './shared/combobox/combo-box.component';
 import { AppComponent } from './app.component';
 import { LandingPageModule } from './landing/landingpage.module';
 import { LandingAboutComponent } from './landingAbout/landingAbout.component';
 import { SearchTopicsComponent } from './landing/topic/topic-popup/search-topics.component';
 import { DescriptionPopupComponent } from './landing/description/description-popup/description-popup.component';
-import { AuthorPopupComponent } from './landing/author/author-popup/author-popup.component';
-import { ContactPopupComponent } from './landing/contact/contact-popup/contact-popup.component';
+import { AuthorModule, AuthorPopupComponent } from './landing/author/author.module';
+import { ContactComponent, ContactPopupComponent } from './landing/contact/contact.module';
 
 
 enableProdMode();
 
 import { SearchService } from './shared/search-service/index';
 import { CartService } from "./datacart/cart.service";
-import { AppShellNoRenderDirective } from './directives/app-shell-no-render.directive';
 import { ModalService } from './shared/modal-service';
 import { TaxonomyListService } from './shared/taxonomy-list'
 import { DownloadService } from "./shared/download-service/download-service.service";
@@ -72,9 +68,7 @@ import { fakeBackendProvider } from './_helpers/fakeBackendInterceptor';
   declarations: [
     AppComponent, DatacartComponent,
     SearchTopicsComponent, DescriptionPopupComponent, 
-    AuthorPopupComponent, ContactPopupComponent,
     ErrorComponent, UserErrorComponent,ComboBoxComponent,ComboBoxPipe,
-    AppShellNoRenderDirective, AppShellRenderDirective, ModalComponent, ContenteditableModel, 
     LandingAboutComponent
   ],
   imports: [
@@ -83,6 +77,7 @@ import { fakeBackendProvider } from './_helpers/fakeBackendInterceptor';
       FrameModule,
       ErrorsModule,
       LandingPageModule,
+      AuthorModule, ContactModule,
       AppRoutingModule,
       LandingModule,
       FragmentPolyfillModule.forRoot({

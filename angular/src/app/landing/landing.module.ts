@@ -7,14 +7,10 @@ import { TreeTableModule } from 'primeng/treetable';
 
 import { LandingComponent } from './landing.component';
 import { DataFilesComponent } from './data-files/data-files.component';
-import { TitleComponent } from './title/title.component';
-import { AuthorComponent } from './author/author.component';
-import { ContactComponent } from './contact/contact.component';
 import { DescriptionComponent } from './description/description.component';
 import { TopicComponent } from './topic/topic.component';
 import { KeywordComponent } from './keyword/keyword.component';
 import { MetadataComponent } from './metadata/metadata.component';
-import { Collaspe } from './collapseDirective/collapse.directive';
 import { NoidComponent } from './noid.component';
 import { NerdmComponent } from './nerdm.component';
 import { KeyValuePipe } from './keyvalue.pipe';
@@ -22,9 +18,9 @@ import { MetadataView } from './metadata/metadataview.component';
 
 @NgModule({
   declarations: [
-    LandingComponent,DataFilesComponent,TitleComponent,AuthorComponent,ContactComponent,
+    LandingComponent,DataFilesComponent,
     DescriptionComponent, TopicComponent, KeywordComponent,
-    MetadataComponent, Collaspe,
+    MetadataComponent, 
     NoidComponent, NerdmComponent,KeyValuePipe,MetadataView
   ],
   imports: [
@@ -32,9 +28,9 @@ import { MetadataView } from './metadata/metadataview.component';
       ConfirmDialogModule, MenuModule,TreeTableModule
   ],
   exports:[
-    LandingComponent, DataFilesComponent, TitleComponent, AuthorComponent, ContactComponent,
+    LandingComponent, DataFilesComponent, 
     DescriptionComponent, TopicComponent, KeywordComponent, MetadataComponent,
-    Collaspe, NoidComponent, NerdmComponent,KeyValuePipe,MetadataView
+    NoidComponent, NerdmComponent,KeyValuePipe,MetadataView
   ]
 })
 export class LandingModule { }

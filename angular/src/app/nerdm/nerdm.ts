@@ -253,6 +253,31 @@ export class NERDResource {
 }
 
 /**
+ * format a (file) size with a byte-unit appropriate for display
+ * @param bytes             the size, in bytes, to format
+ * @param numAfterDecimal   the number of digits that should appear after the decimal place; if null,
+ *                          a default will be used.  The default is 1, unless there is only one digit 
+ *                          before the decimal and the total bytes is greater than 999, in which case 2 
+ *                          digits will appear to the right.
+ */
+export function formatBytes(bytes: number, numAfterDecimal: number|null) {
+    if (bytes == null || bytes == undefined) return '';
+    if (0 == bytes) return "0 Bytes";
+    if (1 == bytes) return "1 Byte";
+    var base = 1000,
+        e = ["Bytes", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+        d = numAfterDecimal || 1,
+        f = Math.floor(Math.log(bytes) / Math.log(base));
+
+    var v = bytes / Math.pow(base, f);
+    if (f == 0) // less than 1 kiloByte
+        d = 0;
+    else if (numAfterDecimal == null && v < 10.0)
+        d = 2;
+    return v.toFixed(d) + " " + e[f];
+}
+
+/**
  * a container for transmitting metadata between the server and the browser
  * versions of the app.  
  */

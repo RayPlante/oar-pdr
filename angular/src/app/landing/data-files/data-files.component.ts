@@ -1,3 +1,10 @@
+import { Component, Input, NgZone } from '@angular/core';
+
+import { TreeNode } from 'primeng/api';
+
+import { NerdmComp, NerdmRes, formatBytes } from '../../nerdm.module';
+import { GoogleAnalyticsService } from '../../shared/ga-service/google-analytics.service';
+
 import { Component, Input, Output, ChangeDetectorRef, NgZone, EventEmitter } from '@angular/core';
 import { TreeNode } from 'primeng/api';
 import { CartService } from '../../datacart/cart.service';
@@ -18,29 +25,368 @@ import { NerdmComp } from '../../nerdm/nerdm';
 
 declare var _initAutoTracker: Function;
 
+formatForContentType = {
+    "application/vnd.ms.excel": "Excel Spreadsheet",
+    "application/csv": "Tabular data",
+    "text/csv": "Tabular data",
+    "application/tsv": "Tabular data",
+    "text/tvs": "Tabular data",
+    "application/pdf":  "PDF document",
+    "text/plain":  "Plain text",
+    "text/json": "JSON data",
+    "application/json": "JSON data",
+    "application/tar": "TAR archive file", 
+    "application/zip": "ZIP archive file"
+};
+
+function deepcopy(obj) { return JSON.parse(JSON.stringify(obj)); }
+
 @Component({
     moduleId: module.id,
     styleUrls: ['../landing.component.css'],
-    selector: 'description-resources',
+    selector: 'pdr-data-files',
     templateUrl: `data-files.component.html`,
     providers: [ConfirmationService]
 })
-
 export class DataFilesComponent {
 
-    @Input() record: any[];
-    @Input() files: TreeNode[];
-    @Input() editContent: boolean;
-    @Input() metadata: boolean;
-    @Input() inBrowser: boolean;   // false if running server-side
-    @Input() ediid: string;
-    @Input() editEnabled: boolean;    //Disable download all functionality if edit is enabled
+    @Input() record: NerdmRes = null;
+    @Input() inBrowser: boolean = false;   // false if running server-side
+    @Input() editEnabled: boolean = false; // disable all download functionality if edit is enabled
 
-    accessPages: NerdmComp[] = [];
-    isReferencedBy: boolean = false;
-    isDocumentedBy: boolean = false;
     cols: any[];
-    fileNode: TreeNode;
+    toplist: TreeNode[];
+    cols = [
+        { field: 'name', header: 'Name', width: '60%' },
+        { field: 'format', header: 'Media Type', width: 'auto' },
+        { field: 'size', header: 'Size', width: 'auto' },
+        { field: 'downloadStatus', header: 'Status', width: 'auto' }
+    ];
+    fileCount: number = 0;
+    cartFileCount: number = 0;          // number of files currently in the cart
+    fontSize: string = "14px";          // used for column data; adjustable for window size
+    isAllExpanded : boolean = false;    // true if user clicked on "Expand All"
+    showZipFileNames : boolean = false; // if true, show for each file, which zipfile it was downloaded in
+    allSelected: boolean = false;       // true if user added all files to the data cart
+
+    constructor(private cfg: AppConfig,
+                private cartService: CartService,
+                private downloadService: DownloadService,
+                private gaService: GoogleAnalyticsService,
+                ngZone: NgZone)
+    {
+        if (typeof (window) !== 'undefined') {
+            this.setWidth(window.innerWidth);
+
+            window.onresize = (e) => {
+                ngZone.run(() => {
+                    this.setColWidthForWindow(window.innerWidth);
+                });
+            };
+        }
+
+        this.cartService.watchStorage().subscribe(size => {
+            this.cartFileCount = size;
+        });
+    }
+
+    /**
+     * create the hierachical listing of the files.  This will reset this.fileCount
+     */
+    buildTree() : void {
+        let chilbypar = { "": [] };
+        let parent = "";
+        let node = null;
+        let c = 0;
+        for(let cmp of this.records) {
+            if (! cmp['filepath'] || NERDResource.objectMatchesType(cmp, "Hidden")) 
+                continue;
+            parent = this.parentcoll(cmp['filepath']);
+            if (! chilbypar[parent]) 
+                childbypar[parent] = [];
+
+            node = this.toTreeNode(cmp);
+            if (chilbypar[cmp['filepath']])
+                node['children'] = chilbypar[cmp['filepath']];
+            childbypar[parent].push(node);
+            c++;
+        }
+
+        this.toplist = chilbypar[""];
+        this.fileCount = c;
+    }
+
+    /**
+     * remove the last file path field to return the parent collection path.  If the input 
+     * path has no parent (i.e. has no "/" character) return an empty string.
+     */
+    parentcoll(path : string) : string {
+        let pos = path.lastIndexOf("/");
+        if (pos < 0)
+            return "";
+        return path.substring(0, pos);
+    }
+
+    /**
+     * convert the given NERDm component into a TreeNode.  The data property will contain a copy of all 
+     * of the corresponding component metadata, plus the following flags:
+     *  * cartId: string -- an ID for identifying it in the cart
+     *  * isIncart: boolean -- true if the component is currently added into the cart
+     *  * downloadStatus: string -- a string indicating its download status: "downloading", "downloaded", ...
+     *  * zipFile: 
+     */
+    toTreeNode(comp : NerdComp) : TreeNode {
+        let out : TreeNode = {
+            data: deepcopy(comp);
+        };
+        Object.assign(out.data, {
+            isIncart: false,
+            downloadStatus = null,
+            zipFile: null
+        });
+
+        // set the id to use to identify it within the cart; we need the resource ID to be part
+        // of it since the cart can contain files from different resource collections.  
+        out.data['cartId'] = this.record['@id'];
+        if (! comp['@id'].startsWith('#'))
+            out.data['cartId'] += "/"
+        out.data['cartId'] += comp['@id'] || comp['filepath'];
+
+        if (comp.filepath) {
+            // set a name that is the base of the filepath
+            let pos = comp.filepath.lastIndexOf("/");
+            out.data['name'] = (pos >= 0) ? comp.filepath.substring(pos+1) : comp.filepath;
+        }
+
+        if (NERDResource.objectMatchesType(comp, "Subcollection"))
+            out['children'] = [];
+        else {
+            out['leaf'] = true;
+            if (! comp.format) {
+                // set a human readable format string
+                if (NERDResource.objectMatchesType(comp, "Checksum"))
+                    out.data['format'] = "checksum hash (plain text)";
+                else if (comp['contentType']) {
+                    let fmt = formatForContentType(comp['contentType']);
+                    if (fmt)
+                        out.data['format'] = fmt;
+                }
+                else
+                    out.data['format'] = comp['contentType'];
+            }
+        }
+
+        return out;
+    }
+
+    /**
+     * adjust the relative widths and fonts for the table columns based on the available width from the 
+     * window.  This accounts for mobile and tablet devices.
+     */
+    setColWidthForWindow(winWidth: number) {
+        if (winWidth > 1340) {
+            // desktop screen with wide (or full-screen) window 
+            this.cols[0].width = '60%';
+            this.cols[1].width = '20%';
+            this.cols[2].width = '15%';
+            this.cols[3].width = '100px';
+            this.fontSize = '16px';
+        } else if (winWidth > 780) {
+            // tablet screen or destop screen with moderate width window
+            this.cols[0].width = '60%';
+            this.cols[1].width = '170px';
+            this.cols[2].width = '100px';
+            this.cols[3].width = '100px';
+            this.fontSize = '14px';
+        }
+        else {
+            // mobile screen
+            this.cols[0].width = '50%';
+            this.cols[1].width = '20%';
+            this.cols[2].width = '20%';
+            this.cols[3].width = '10%';
+            this.fontSize = '12px';
+        }
+    }
+
+    ngOnChanges() {
+        this.useMetadata();
+    }
+
+    /**
+     * initial this component's internal data used to drive the display based on the 
+     * input resource metadata
+     */
+    useMetadata(): void {
+        this.buildTree()
+    }
+
+    /**
+     * expand or collapse the full file hierarchy 
+     * @param expand   if true, all file subcollections are opened; if false, all are closed
+     */
+    setAllExpanded(expand: boolean) {
+        this.setCollectionExpandedToLevel(toplist, expand, -1);
+    }
+
+    /**
+     * expand or collapse the file hierarchy from the top down to a certain level
+     * @param coll     the TreeNode for the collection; it must have a children property.
+     * @param expand   if true, all file subcollections are opened; if false, all are closed
+     * @param level    an integer indicating the number of levels down to adjust; a value of 1 means
+     *                 expand only the given TreeNode (coll); a value of 0 means do nothing; a 
+     *                 negative value means apply the change all the way to the bottom of the hierarchy.
+     */
+    setCollectionExpandedToLevel(coll: TreeNode, expand: boolean, level: number) {
+        if (! coll.children || level == 0)
+            return;
+
+        coll.expanded = expand;
+        if (level == 1)
+            return;
+
+        for (let i=0; i < coll.children.length; i++) {
+            if (coll.children[i].children)
+                this.setCollectionExpandedToLevel(coll.children[i], expand, level-1);
+        }
+    }
+    
+    /**
+     * format a file size appropriately for display
+     **/
+    formatBytes(bytes, numAfterDecimal) {
+        // use global function imported from nerdm.ts
+        return formatBytes(bytes, numAfterDecimal);
+    }
+
+    /** style to use for cells under the file Name column */
+    titleStyle() {
+        return { 'width': this.cols[0].width, 'font-size': this.fontSize };
+    }
+
+    /** style to use for cells under the Media Type column */
+    typeStyle() {
+        return { 'width': this.cols[1].width, 'font-size': this.fontSize };
+    }
+
+    /** style to use for cells under the file Size column */
+    sizeStyle() {
+        return { 'width': this.cols[2].width, 'font-size': this.fontSize };
+    }
+
+    /** style to use for cells under the Status column */
+    statusStyle() {
+        return { 'width': this.cols[3].width, 'font-size': this.fontSize };
+    }
+
+    /**
+     * set a file's download status in response to clicking the download link
+    **/
+    setFileDownloaded(rowData: any) {
+        rowData.downloadStatus = 'downloaded';
+        this.cartService.updateCartItemDownloadStatus(rowData.cartId, 'downloaded');
+        this.downloadStatus = this.updateDownloadStatus(this.files) ? "downloaded" : null;
+        if (rowData.isIncart) {
+            this.downloadService.setFileDownloadedFlag(true);
+        }
+    }
+
+    /**
+     * Return "download all" button color based on download status
+     **/
+    getDownloadAllBtnColor() {
+        if (this.downloadStatus == null)
+            return '#1E6BA1';
+        else if (this.downloadStatus == 'downloaded')
+            return 'green';
+    }
+
+    /**
+    * Return "download" button color based on download status
+    **/
+    getDownloadBtnColor(rowData: any) {
+        if (rowData.downloadStatus == 'downloaded')
+            return 'green';
+
+        return '#1E6BA1';
+    }
+
+    /**
+     * Return "add all to datacart" button color based on select status
+     **/
+    getAddAllToDataCartBtnColor() {
+        if (this.allSelected)
+            return 'green';
+        else
+            return '#1E6BA1';
+    }
+
+    /**
+     * Return tooltip text based on select status
+     **/
+    getCartProcessTooltip() {
+        if (this.allSelected)
+            return 'Remove all from cart';
+        else
+            return 'Add all to cart';
+    }
+
+    /**
+     * Function to confirm download all.
+     **/
+    downloadAllConfirm(header: string, massage: string, key: string) {
+        this.confirmationService.confirm({
+            message: massage,
+            header: header,
+            key: key,
+            accept: () => {
+                // Google Analytics tracking code
+                // this.gaService.gaTrackEvent('download', undefined, 'all files', 'title');
+
+                setTimeout(() => {
+                    let popupWidth: number = this.mobWidth * 0.8;
+                    let left: number = this.mobWidth * 0.1;
+                    let screenSize = 'height=880,width=' + popupWidth.toString() + ',top=100,left=' + left.toString();
+                    window.open('/datacart/popup', 'DownloadManager', screenSize);
+                    this.downloadAllViaCart();
+                }, 0);
+            },
+            reject: () => {
+            }
+        });
+    }
+
+    /**
+     * Function to download all.
+     **/
+    downloadAllViaCart() {
+        this.cartService.setCurrentCart('landing_popup');
+        setTimeout(() => {
+            this.cartService.clearTheCart();
+            this.addAllFilesToCart(this.files, true, 'popup').then(function (result) {
+                this.cartService.setCurrentCart('cart');
+                this.updateStatusFromCart().then(function (result: any) {
+                    this.forceDataFileTreeInit();
+                }.bind(this), function (err) {
+                    alert("something went wrong while adding file to data cart.");
+                });
+            }.bind(this), function (err) {
+                alert("something went wrong while adding all files to cart");
+            });
+        }, 0);
+    }
+
+    private updateDownloadStatus() {
+        this.cartMap = this.cartService.getCart();
+        this.allSelected = this.updateAllSelectStatus(this.files);
+        this.cartFileSize = this.cartService.getCartSize();
+    }
+
+
+    
+
+    /* ************************************** */
+
     displayDownloadFiles: boolean = false;
     cartMap: any[];
     allSelected: boolean = false;
@@ -134,9 +480,6 @@ export class DataFilesComponent {
 
 
     ngOnChanges() {
-        this.accessPages = []
-        if (this.record['components'])
-            this.accessPages = this.selectAccessPages(this.record['components']);
         this.buildTree();
     }
 
@@ -148,7 +491,7 @@ export class DataFilesComponent {
         const newPart = {
             data: {
                 cartId: "/",
-                ediid: this.ediid,
+                ediid: this.record['ediid'],
                 name: "files",
                 mediatype: "",
                 size: null,
@@ -282,40 +625,6 @@ export class DataFilesComponent {
                 }
             }
         }
-    }
-
-    /**
-     * Function to Check whether given record has references in it.
-     */
-    checkReferences() {
-        if (Array.isArray(this.record['references'])) {
-            for (let ref of this.record['references']) {
-                if (ref.refType === 'IsDocumentedBy') this.isDocumentedBy = true;
-                if (ref.refType === 'IsReferencedBy') this.isReferencedBy = true;
-            }
-            if (this.isDocumentedBy || this.isReferencedBy)
-                return true;
-        }
-    }
-
-    /**
-     * return an array of AccessPage components from the given input components array
-     */
-    selectAccessPages(comps : NerdmComp[]) : NerdmComp[] {
-        let use : NerdmComp[] = comps.filter(cmp => cmp['@type'].includes("nrdp:AccessPage") &&
-                                       ! cmp['@type'].includes("nrd:Hidden"));
-        use = (JSON.parse(JSON.stringify(use))) as NerdmComp[];
-        return use.map((cmp) => {
-            if (! cmp['title']) cmp['title'] = cmp['accessURL']
-            return cmp;
-        });
-    }
-
-    /**
-    * Function to display bytes in appropriate format.
-    **/
-    formatBytes(bytes, numAfterDecimal) {
-        return this.commonFunctionService.formatBytes(bytes, numAfterDecimal);
     }
 
     isNodeSelected: boolean = false;
@@ -458,7 +767,7 @@ export class DataFilesComponent {
         let data: Data;
         data = {
             'cartId': rowData.cartId,
-            'ediid': this.ediid,
+            'ediid': this.record['ediid'],
             'resId': rowData.resId,
             'resTitle': this.record['title'],
             'resFilePath': rowData.filePath,
@@ -616,19 +925,6 @@ export class DataFilesComponent {
     }
 
     /**
-    * Function to set status when a file was downloaded
-    **/
-    setFileDownloaded(rowData: any) {
-        rowData.downloadStatus = 'downloaded';
-        this.cartService.updateCartItemDownloadStatus(rowData.cartId, 'downloaded');
-        this.downloadStatus = this.updateDownloadStatus(this.files) ? "downloaded" : null;
-        if (rowData.isIncart) {
-            this.downloadService.setFileDownloadedFlag(true);
-        }
-    }
-
-
-    /**
     * Function to download all files based on download url.
     **/
     downloadAllFilesFromUrl(files: any) {
@@ -641,52 +937,6 @@ export class DataFilesComponent {
                 }
             }
         }
-    }
-
-    /**
-    * Function to confirm download all.
-    **/
-    downloadAllConfirm(header: string, massage: string, key: string) {
-        this.confirmationService.confirm({
-            message: massage,
-            header: header,
-            key: key,
-            accept: () => {
-                // Google Analytics tracking code
-                // this.gaService.gaTrackEvent('download', undefined, 'all files', 'title');
-
-                setTimeout(() => {
-                    let popupWidth: number = this.mobWidth * 0.8;
-                    let left: number = this.mobWidth * 0.1;
-                    let screenSize = 'height=880,width=' + popupWidth.toString() + ',top=100,left=' + left.toString();
-                    window.open('/datacart/popup', 'DownloadManager', screenSize);
-                    this.cancelAllDownload = false;
-                    this.downloadFromRoot();
-                }, 0);
-            },
-            reject: () => {
-            }
-        });
-    }
-
-    /**
-    * Function to download all.
-    **/
-    downloadFromRoot() {
-        this.cartService.setCurrentCart('landing_popup');
-        setTimeout(() => {
-            this.cartService.clearTheCart();
-            this.addAllFilesToCart(this.files, true, 'popup').then(function (result) {
-                this.cartService.setCurrentCart('cart');
-                this.updateStatusFromCart().then(function (result: any) {
-                    this.edstatsvc.forceDataFileTreeInit();
-                }.bind(this), function (err) {
-                    alert("something went wrong while adding file to data cart.");
-                });
-            }.bind(this), function (err) {
-                alert("something went wrong while adding all files to cart");
-            });
-        }, 0);
     }
 
     /**
@@ -713,46 +963,6 @@ export class DataFilesComponent {
         this.allDownloaded = false;
     }
 
-    /**
-     * Return "download all" button color based on download status
-     **/
-    getDownloadAllBtnColor() {
-        if (this.downloadStatus == null)
-            return '#1E6BA1';
-        else if (this.downloadStatus == 'downloaded')
-            return 'green';
-    }
-
-    /**
-    * Return "download" button color based on download status
-    **/
-    getDownloadBtnColor(rowData: any) {
-        if (rowData.downloadStatus == 'downloaded')
-            return 'green';
-
-        return '#1E6BA1';
-    }
-
-    /**
-    * Return "add all to datacart" button color based on select status
-    **/
-    getAddAllToDataCartBtnColor() {
-        if (this.allSelected)
-            return 'green';
-        else
-            return '#1E6BA1';
-    }
-
-    /**
-    * Return tooltip text based on select status
-    **/
-    getCartProcessTooltip() {
-        if (this.allSelected)
-            return 'Remove all from cart';
-        else
-            return 'Add all to cart';
-    }
-
     /*
   * Following functions set tree table style
   */
@@ -770,22 +980,6 @@ export class DataFilesComponent {
 
     statusStyleHeader() {
         return { 'background-color': '#1E6BA1', 'width': this.cols[3].width, 'color': 'white', 'font-size': this.fontSize, 'white-space': 'nowrap' };
-    }
-
-    titleStyle() {
-        return { 'width': this.cols[0].width, 'font-size': this.fontSize };
-    }
-
-    typeStyle() {
-        return { 'width': this.cols[1].width, 'font-size': this.fontSize };
-    }
-
-    sizeStyle() {
-        return { 'width': this.cols[2].width, 'font-size': this.fontSize };
-    }
-
-    statusStyle() {
-        return { 'width': this.cols[3].width, 'font-size': this.fontSize };
     }
 
     setWidth(mobWidth: number) {

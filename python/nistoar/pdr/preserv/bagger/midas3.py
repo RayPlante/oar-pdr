@@ -609,7 +609,8 @@ class MIDASMetadataBagger(SIPBagger):
         the bag; thus, it's okay if further updates are made after calling this 
         function since the BagBuilder will reconnect the log file automatically.
         """
-        self.bagbldr.disconnect_logfile()
+        if (self.bagbldr):
+            self.bagbldr.disconnect_logfile()
 
     def _mint_id(self, ediid):
         if not self._minter:
@@ -1685,7 +1686,8 @@ class PreservationBagger(SIPBagger):
         the bag; thus, it's okay if further updates are made after calling this 
         function since the BagBuilder will reconnect the log file automatically.
         """
-        self.bagbldr.disconnect_logfile()
+        if (self.bagbldr):
+            self.bagbldr.disconnect_logfile()
 
     def establish_output_bag(self):
         """
